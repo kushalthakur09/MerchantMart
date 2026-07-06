@@ -12,4 +12,5 @@ public class ExceptionMessageConstants {
     public static final String ACCESS_DENIED_TO_CATEGORY = "You don't have permission to manage this category";
     public static final String PRODUCT_ALREADY_EXISTS = "Product already exits";
     public static final String BRANCH_NOT_FOUND = "Branch not found";
+    public static final String INVENTORY_NOT_FOUND = "Inventory not found";
 }
