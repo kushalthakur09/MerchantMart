@@ -19,12 +19,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getCurrentUser() {
         String email=SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-        return userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException(ExceptionMessageConstants.USER_NO_FOUND));
+        return userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException(ExceptionMessageConstants.USER_NOT_FOUND));
     }
 
     @Override
     public User getUserFromJwtToken(String jwt) {
         String email= jwtProvider.getEmailFromToken(jwt);
-        return userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException(ExceptionMessageConstants.USER_NO_FOUND));
+        return userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException(ExceptionMessageConstants.USER_NOT_FOUND));
     }
 }

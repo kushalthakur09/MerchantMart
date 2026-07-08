@@ -111,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
-                                ExceptionMessageConstants.USER_NO_FOUND));
+                                ExceptionMessageConstants.USER_NOT_FOUND));
 
         if(Role.ROLE_ADMIN.equals(user.getRole())){
             throw new AccessDeniedException("Role Admin Is Not Allowed");

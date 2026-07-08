@@ -38,6 +38,9 @@ public class User {
     @ManyToOne
     private Store store;
 
+    @ManyToOne
+    private Branch branch;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
