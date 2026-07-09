@@ -4,7 +4,6 @@ import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.Branch;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.AccessDeniedException;
 import com.main.MerchantMart.exception.BranchNotFoundException;
 import com.main.MerchantMart.exception.EmployeeNotFoundException;
 import com.main.MerchantMart.exception.StoreNotFoundException;
