@@ -15,5 +15,5 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
     List<Order> findByCashierId(Long cashierId);
     List<Order> findByBranchIdAndCreatedDateBetween(Long branchId, LocalDateTime fromDate,LocalDateTime toDate);
     List<Order> findByCashierAndCreatedDateBetween(User cashier, LocalDateTime fromDate, LocalDateTime toDate);
-    List<Order> findTop5ByBranchIdAndCreatedDateDesc(Long branchId);
+    List<Order> findTop5ByBranchIdOrderByCreatedDateDesc(Long branchId);
 }

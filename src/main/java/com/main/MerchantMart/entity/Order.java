@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
+@Table(name = "orders")
 public class Order {
 
     @Id
@@ -29,19 +30,18 @@ public class Order {
     private LocalDateTime createdDate;
 
     @ManyToOne
-    @Column(nullable = false)
     private Branch branch;
 
     @ManyToOne
-    @Column(nullable = false)
     private User cashier;
 
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false)
     private Customer customer;
 
-    @OneToMany
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL)
     private List<OrderItem> items;
 
+    @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 }

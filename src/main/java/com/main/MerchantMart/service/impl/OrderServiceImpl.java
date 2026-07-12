@@ -123,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDto> getTop5RecentOrdersByBranchId(Long branchId) {
-        return orderRepository.findTop5ByBranchIdAndCreatedDateDesc(branchId)
+        return orderRepository.findTop5ByBranchIdOrderByCreatedDateDesc(branchId)
                 .stream()
                 .map(OrderMapper::toDto)
                 .toList();

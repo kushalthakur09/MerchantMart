@@ -15,7 +15,7 @@ public class OrderDto {
 
     private Long id;
 
-    @NotNull(message = "Total amount is mandatory field")
+
     private Double totalAmount;
 
     private LocalDateTime createdDate;
@@ -26,11 +26,14 @@ public class OrderDto {
 
     private UserDto cashier;
 
+    @NotNull(message = "Total amount is mandatory field")
     private Customer customer;
 
     private Long customerId;
 
+    @NotNull(message = "Item List is mandatory field")
     private List<OrderItemDto> items;
 
+    @NotNull(message = "Payment Type is mandatory field")
     private PaymentType paymentType;
 }
