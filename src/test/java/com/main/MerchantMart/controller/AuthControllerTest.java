@@ -50,8 +50,6 @@ public class AuthControllerTest {
     @MockitoBean
     private OAuth2SuccessHandler oAuth2SuccessHandler;
 
-
-
     private SignupRequest signupRequest;
 
     private LoginRequest loginRequest;

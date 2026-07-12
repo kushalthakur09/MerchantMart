@@ -1,14 +1,10 @@
 package com.main.MerchantMart.payload.dto;
 
-import com.main.MerchantMart.entity.Branch;
+import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.entity.Customer;
-import com.main.MerchantMart.entity.OrderItem;
-import com.main.MerchantMart.entity.User;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,5 +30,7 @@ public class OrderDto {
 
     private Long customerId;
 
-    private List<OrderItemDto> orderItemList;
+    private List<OrderItemDto> items;
+
+    private PaymentType paymentType;
 }

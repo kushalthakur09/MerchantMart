@@ -1,5 +1,6 @@
 package com.main.MerchantMart.entity;
 
+import com.main.MerchantMart.domain.PaymentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,5 +41,7 @@ public class Order {
     private Customer customer;
 
     @OneToMany
-    private List<OrderItem> orderItemList;
+    private List<OrderItem> items;
+
+    private PaymentType paymentType;
 }

@@ -15,4 +15,5 @@ public class ExceptionMessageConstants {
     public static final String INVENTORY_NOT_FOUND = "Inventory not found";
     public static final String EMPLOYEE_NOT_FOUND = "Employee not found";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found";
+    public static final String ORDER_NOT_FOUND = "Order not found";
 }

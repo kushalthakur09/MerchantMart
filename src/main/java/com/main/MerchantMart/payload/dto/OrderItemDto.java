@@ -19,5 +19,7 @@ public class OrderItemDto {
 
     private ProductDto product;
 
+    private Long productId;
+
     private Long orderId;
 }
