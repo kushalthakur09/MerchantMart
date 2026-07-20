@@ -9,4 +9,5 @@ public class ApiConstants {
     public static final String EMPLOYEE_DELETED_SUCCESSFULLY = "Employee deleted successfully";
     public static final String CUSTOMER_DELETED_SUCCESSFULLY = "Customer deleted successfully";
     public static final String ORDER_DELETED_SUCCESSFULLY = "Order deleted successfully";
+    public static final String REFUND_DELETED_SUCCESSFULLY = "Refund deleted successfully";
 }

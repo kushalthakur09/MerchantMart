@@ -16,4 +16,6 @@ public class ExceptionMessageConstants {
     public static final String EMPLOYEE_NOT_FOUND = "Employee not found";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found";
     public static final String ORDER_NOT_FOUND = "Order not found";
+    public static final String REFUND_NOT_FOUND = "Refund not found";
+    public static final String ACCESS_DENIED_TO_REFUND_DELETION = "Refund can only be deleted by super admin";
 }
