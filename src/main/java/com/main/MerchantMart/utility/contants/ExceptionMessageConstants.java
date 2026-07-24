@@ -18,4 +18,6 @@ public class ExceptionMessageConstants {
     public static final String ORDER_NOT_FOUND = "Order not found";
     public static final String REFUND_NOT_FOUND = "Refund not found";
     public static final String ACCESS_DENIED_TO_REFUND_DELETION = "Refund can only be deleted by super admin";
+    public static final String SHIFT_ALREADY_STARTED = "Shift has already been started";
+    public static final String SHIFT_NOT_FOUND = "Shift not found";
 }

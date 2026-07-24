@@ -1,16 +1,9 @@
 package com.main.MerchantMart.utility.mapper;
 
-import com.main.MerchantMart.entity.Category;
-import com.main.MerchantMart.entity.Order;
 import com.main.MerchantMart.entity.ShiftReport;
-import com.main.MerchantMart.payload.dto.CategoryDto;
-import com.main.MerchantMart.payload.dto.OrderDto;
 import com.main.MerchantMart.payload.dto.ShiftReportDto;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import static com.main.MerchantMart.utility.function.Utility.mapListToDto;
 
 public class ShiftReportMapper {
 
@@ -33,22 +26,7 @@ public class ShiftReportMapper {
                 .build();
     }
 
-    private static <E,D> List<D> mapListToDto(List<E> entityList, Function<E,D> mapper) {
-        if(entityList == null || entityList.isEmpty()){
-            return  null;
-        }
 
-        return  entityList.stream()
-                .map(mapper)
-                .collect(Collectors.toList());
-    }
 
- /*    public static Category toEntity(CategoryDto categoryDto) {
-       Category category = new Category();
-        category.setId(categoryDto.getId());
-        category.setName(categoryDto.getName());
-        category.setStore(categoryDto.getStore());
 
-        return category;
-    }*/
 }
