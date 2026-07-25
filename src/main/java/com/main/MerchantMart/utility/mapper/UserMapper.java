@@ -16,6 +16,8 @@ public class UserMapper {
         userResponse.setPhoneNo(user.getPhoneNo());
         userResponse.setRole(user.getRole());
         userResponse.setLastLoginDate(user.getLastLoginDate());
+        userResponse.setBranchId(user.getBranch() != null ? user.getBranch().getId() : null);
+        userResponse.setStoreId(user.getStore() != null ? user.getStore().getId() : null);
         return  userResponse;
     }
 

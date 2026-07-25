@@ -6,4 +6,7 @@ public class ShiftNotFoundException extends  RuntimeException{
     public ShiftNotFoundException(){
         super(ExceptionMessageConstants.SHIFT_NOT_FOUND);
     }
+    public ShiftNotFoundException(String additionalMessage){
+        super(ExceptionMessageConstants.SHIFT_NOT_FOUND+additionalMessage);
+    }
 }
