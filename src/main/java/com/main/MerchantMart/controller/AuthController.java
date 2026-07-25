@@ -26,15 +26,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/admin/signup")
-    public ResponseEntity<AuthResponse> adminSignup(
-            @Valid @RequestBody SignupRequest request) {
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(authService.adminSignup(request));
-    }
-
     @PostMapping("/admin/login")
     public ResponseEntity<AuthResponse> adminLogin(
             @Valid @RequestBody LoginRequest request) {

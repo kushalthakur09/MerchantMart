@@ -37,44 +37,37 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse signup(SignupRequest request) {
-            User user=createUser(request);
-            return buildAuthResponse(user,AuthConstants.SIGNUP_SUCCESS);
-    }
-
-    @Override
-    public AuthResponse adminSignup(SignupRequest request){
-//        User user=createUser(request,Role.ROLE_ADMIN);
-        User user=createUser(request);
-        return buildAuthResponse(user,AuthConstants.SIGNUP_SUCCESS);
+        User user = createUser(request);
+        return buildAuthResponse(user, AuthConstants.SIGNUP_SUCCESS);
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        return authenticateUser(request,ExceptionMessageConstants.USE_ADMIN_LOGIN);
+        return authenticateUser(request);
     }
 
     @Override
     public AuthResponse adminLogin(LoginRequest request) {
-        return authenticateUser( request,ExceptionMessageConstants.USE_USER_LOGIN);
+        return authenticateAdmin(request);
     }
 
-    private  User createUser(SignupRequest request){
-            if(userRepository.existsByEmail(request.getEmail())){
-                throw new EmailAlreadyExistsException(ExceptionMessageConstants.EMAIL_ALREADY_EXITS);
-            }
+    private User createUser(SignupRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException(ExceptionMessageConstants.EMAIL_ALREADY_EXITS);
+        }
 
-            if(Role.ROLE_ADMIN.equals(request.getRole())){
-                throw new AccessDeniedException("Role Admin Is Not Allowed");
-            }
-            User user=new User();
-            user.setFullUserName(request.getFullUserName());
-            user.setEmail(request.getEmail());
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-            user.setPhoneNo(request.getPhoneNo());
-            user.setRole(request.getRole());
-            user.setLastLoginDate(LocalDateTime.now());
+        if (Role.ROLE_ADMIN.equals(request.getRole())) {
+            throw new AccessDeniedException("Role Admin Is Not Allowed");
+        }
+        User user = new User();
+        user.setFullUserName(request.getFullUserName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNo(request.getPhoneNo());
+        user.setRole(request.getRole());
+        user.setLastLoginDate(LocalDateTime.now());
 
-            return userRepository.save(user);
+        return userRepository.save(user);
     }
 
     private AuthResponse buildAuthResponse(
@@ -98,9 +91,7 @@ public class AuthServiceImpl implements AuthService {
                 UserMapper.toDto(user));
     }
 
-    private AuthResponse authenticateUser(
-            LoginRequest request,
-            String errorMessage) {
+    private AuthResponse authenticateUser(LoginRequest request) {
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -113,8 +104,8 @@ public class AuthServiceImpl implements AuthService {
                         new UsernameNotFoundException(
                                 ExceptionMessageConstants.USER_NOT_FOUND));
 
-        if(Role.ROLE_ADMIN.equals(user.getRole())){
-            throw new AccessDeniedException("Role Admin Is Not Allowed");
+        if (Role.ROLE_ADMIN.equals(user.getRole())) {
+            throw new AccessDeniedException("Please use the admin login endpoint.");
         }
 
         user.setLastLoginDate(LocalDateTime.now());
@@ -128,4 +119,31 @@ public class AuthServiceImpl implements AuthService {
                 UserMapper.toDto(user));
     }
 
+    private AuthResponse authenticateAdmin(LoginRequest request) {
+
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getEmail(),
+                                request.getPassword()));
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new UsernameNotFoundException(
+                                ExceptionMessageConstants.USER_NOT_FOUND));
+
+        if (!Role.ROLE_ADMIN.equals(user.getRole())) {
+            throw new AccessDeniedException("Only administrators can access this endpoint.");
+        }
+
+        user.setLastLoginDate(LocalDateTime.now());
+        userRepository.save(user);
+
+        String token = jwtProvider.generateToken(authentication);
+
+        return new AuthResponse(
+                token,
+                AuthConstants.LOGIN_SUCCESS,
+                UserMapper.toDto(user));
+    }
 }
