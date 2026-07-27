@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface BranchRepository extends JpaRepository<Branch,Long> {
-    public List<Branch> findByStoreId(Long storeId);
+public interface BranchRepository extends JpaRepository<Branch, Long> {
+    List<Branch> findByStoreId(Long storeId);
+    Long countByStoreId(Long storeId);
 }

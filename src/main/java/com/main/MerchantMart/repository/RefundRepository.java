@@ -34,4 +34,13 @@ public interface RefundRepository extends JpaRepository<Refund, Long> {
     Double getTodayRefundAmount(Long branchId,
                                 LocalDateTime fromDate,
                                 LocalDateTime toDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(r.amount), 0)
+            FROM Refund r
+            WHERE r.branch.store.id = :storeId
+            """)
+    Double getTotalRefundAmount(Long storeId);
+
+    Long countByBranchStoreId(Long storeId);
 }

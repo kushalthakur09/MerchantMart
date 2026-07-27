@@ -86,4 +86,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> getPaymentBreakdown(Long branchId,
                                        LocalDateTime fromDate,
                                        LocalDateTime toDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(o.totalAmount), 0)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            """)
+    Double getTotalRevenue(Long storeId);
+
+    Long countByBranchStoreId(Long storeId);
+
+    @Query("""
+            SELECT COUNT(DISTINCT o.customer.id)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            AND o.customer IS NOT NULL
+            """)
+    Long getTotalCustomers(Long storeId);
+
 }

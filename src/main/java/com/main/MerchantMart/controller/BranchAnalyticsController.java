@@ -47,7 +47,6 @@ public class BranchAnalyticsController {
     @GetMapping("/payment-breakdown")
     public List<PaymentBreakdownDto> getPaymentBreakdown(
             @RequestParam(required = false) LocalDate date) {
-
         return branchAnalyticsService.getPaymentBreakdown(date);
     }
 }
