@@ -104,4 +104,69 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             """)
     Long getTotalCustomers(Long storeId);
 
+    @Query("""
+            SELECT DATE(o.createdDate),
+                   SUM(o.totalAmount)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            AND o.createdDate BETWEEN :fromDate AND :toDate
+            GROUP BY DATE(o.createdDate)
+            ORDER BY DATE(o.createdDate)
+            """)
+    List<Object[]> getDailySalesTrend(Long storeId,
+                                      LocalDateTime fromDate,
+                                      LocalDateTime toDate);
+
+    @Query("""
+            SELECT FUNCTION('YEAR', o.createdDate),
+                   FUNCTION('WEEK', o.createdDate),
+                   SUM(o.totalAmount)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            AND o.createdDate BETWEEN :fromDate AND :toDate
+            GROUP BY FUNCTION('YEAR', o.createdDate),
+                     FUNCTION('WEEK', o.createdDate)
+            ORDER BY FUNCTION('YEAR', o.createdDate),
+                     FUNCTION('WEEK', o.createdDate)
+            """)
+    List<Object[]> getWeeklySalesTrend(Long storeId,
+                                       LocalDateTime fromDate,
+                                       LocalDateTime toDate);
+
+
+    @Query("""
+            SELECT FUNCTION('YEAR', o.createdDate),
+                   FUNCTION('MONTH', o.createdDate),
+                   SUM(o.totalAmount)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            AND o.createdDate BETWEEN :fromDate AND :toDate
+            GROUP BY FUNCTION('YEAR', o.createdDate),
+                     FUNCTION('MONTH', o.createdDate)
+            ORDER BY FUNCTION('YEAR', o.createdDate),
+                     FUNCTION('MONTH', o.createdDate)
+            """)
+    List<Object[]> getMonthlySalesTrend(Long storeId,
+                                        LocalDateTime fromDate,
+                                        LocalDateTime toDate);
+
+    @Query("""
+            SELECT o.paymentType,
+                   SUM(o.totalAmount)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            GROUP BY o.paymentType
+            ORDER BY SUM(o.totalAmount) DESC
+            """)
+    List<Object[]> getPaymentMethodSales(Long storeId);
+
+    @Query("""
+            SELECT o.branch.name,
+                   SUM(o.totalAmount)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            GROUP BY o.branch.id, o.branch.name
+            ORDER BY SUM(o.totalAmount) DESC
+            """)
+    List<Object[]> getBranchSales(Long storeId);
 }

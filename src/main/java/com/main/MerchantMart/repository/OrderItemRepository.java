@@ -43,4 +43,14 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                                     LocalDateTime fromDate,
                                     LocalDateTime toDate);
 
+    @Query("""
+            SELECT oi.product.category.name,
+                   SUM(oi.quantity * oi.price)
+            FROM OrderItem oi
+            WHERE oi.order.branch.store.id = :storeId
+            GROUP BY oi.product.category.name
+            ORDER BY SUM(oi.quantity * oi.price) DESC
+            """)
+    List<Object[]> getCategorySales(Long storeId);
+
 }
