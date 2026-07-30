@@ -169,4 +169,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             ORDER BY SUM(o.totalAmount) DESC
             """)
     List<Object[]> getBranchSales(Long storeId);
+
+    @Query("""
+            SELECT COUNT(o)
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            AND o.createdDate >= :start
+            AND o.createdDate < :end
+            """)
+    Long countTodayOrders(Long storeId,
+                          LocalDateTime start,
+                          LocalDateTime end);
 }

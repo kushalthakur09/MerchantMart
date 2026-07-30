@@ -1,6 +1,8 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.AlertSeverity;
 import com.main.MerchantMart.domain.PaymentType;
+import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.StoreNotFoundException;
@@ -27,6 +29,8 @@ public class StoreAnalyticsServiceImpl implements StoreAnalyticsService {
     private final BranchRepository branchRepository;
     private final ProductRepository productRepository;
     private final RefundRepository refundRepository;
+    private final InventoryRepository inventoryRepository;
+    private final UserRepository userRepository;
 
     @Override
     public StoreOverviewDto getOverview() {
@@ -107,6 +111,74 @@ public class StoreAnalyticsServiceImpl implements StoreAnalyticsService {
                         .totalSales(((Number) result[1]).doubleValue())
                         .build())
                 .toList();
+    }
+
+    @Override
+    public List<AlertMessageDto> getAlerts() {
+
+        Store store = getCurrentStore();
+
+        List<AlertMessageDto> alerts = new ArrayList<>();
+
+
+        Long lowStock = inventoryRepository.countLowStockProducts(store.getId(), 10);
+
+        if (lowStock > 0) {
+            alerts.add(AlertMessageDto.builder()
+                    .title("Low Stock")
+                    .message(lowStock + " products are running low on stock.")
+                    .severity(AlertSeverity.WARNING)
+                    .action("Restock inventory")
+                    .build());
+        }
+
+        Long branchesWithoutManager =
+                branchRepository.countBranchesWithoutManager(store.getId());
+
+        if (branchesWithoutManager > 0) {
+            alerts.add(AlertMessageDto.builder()
+                    .title("Branch Manager Missing")
+                    .message(branchesWithoutManager + " branches do not have a manager assigned.")
+                    .severity(AlertSeverity.CRITICAL)
+                    .action("Assign a manager")
+                    .build());
+        }
+
+        Long inactiveCashiers =userRepository.countInactiveCashiers(
+                        store.getId(),
+                        Role.ROLE_BRANCH_CASHIER,
+                        LocalDateTime.now().minusDays(30));
+
+        if (inactiveCashiers > 0) {
+            alerts.add(AlertMessageDto.builder()
+                    .title("Inactive Cashiers")
+                    .message(inactiveCashiers + " cashiers have not logged in during the last 30 days.")
+                    .severity(AlertSeverity.WARNING)
+                    .action("Review cashier activity")
+                    .build());
+        }
+
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.plusDays(1).atStartOfDay();
+
+        Long todayOrders = orderRepository.countTodayOrders(
+                store.getId(),
+                start,
+                end
+        );
+
+        if (todayOrders == 0) {
+            alerts.add(AlertMessageDto.builder()
+                    .title("No Sales Today")
+                    .message("No orders have been placed today.")
+                    .severity(AlertSeverity.CRITICAL)
+                    .action("Check branch operations")
+                    .build());
+        }
+
+        return alerts;
     }
 
     ///////// --------------------- HELPER METHODS ---------------------////////////////// //

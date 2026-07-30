@@ -10,4 +10,5 @@ public interface StoreAnalyticsService {
     List<CategorySalesDto> getCategorySales();
     List<PaymentMethodSalesDto> getPaymentMethodSales();
     List<BranchSalesDto> getBranchSales();
+    List<AlertMessageDto> getAlerts();
 }
