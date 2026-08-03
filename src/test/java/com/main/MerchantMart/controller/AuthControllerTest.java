@@ -86,7 +86,7 @@ public class AuthControllerTest {
         user.setPhoneNo("9876543211");
         user.setLastLoginDate(LocalDateTime.now());
 
-        authResponse=new AuthResponse("dummy-token","Signup Succesful",UserMapper.toDto(user));
+        authResponse=new AuthResponse("dummy-token","Signup Successful",UserMapper.toDto(user));
     }
 
     @Test
