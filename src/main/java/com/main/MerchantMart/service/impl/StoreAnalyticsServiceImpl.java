@@ -5,7 +5,7 @@ import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.StoreNotFoundException;
+import com.main.MerchantMart.exception.notfound.ProductNotFoundException;
 import com.main.MerchantMart.payload.dto.*;
 import com.main.MerchantMart.repository.*;
 import com.main.MerchantMart.service.StoreAnalyticsService;
@@ -188,7 +188,7 @@ public class StoreAnalyticsServiceImpl implements StoreAnalyticsService {
         Store store = user.getStore();
 
         if (Objects.isNull(store)) {
-            throw new StoreNotFoundException();
+            throw new ProductNotFoundException.StoreNotFoundException();
         }
         return store;
     }

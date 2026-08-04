@@ -4,7 +4,9 @@ import com.main.MerchantMart.entity.Category;
 import com.main.MerchantMart.entity.Product;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.*;
+import com.main.MerchantMart.exception.conflict.ProductAlreadyExistsException;
+import com.main.MerchantMart.exception.notfound.CategoryNotFoundException;
+import com.main.MerchantMart.exception.notfound.ProductNotFoundException;
 import com.main.MerchantMart.payload.dto.ProductDto;
 import com.main.MerchantMart.repository.CategoryRepository;
 import com.main.MerchantMart.repository.ProductRepository;
@@ -29,7 +31,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto createProduct(ProductDto productDto, User user) {
         Store store=storeRepository.findById(productDto.getStoreId())
                 .orElseThrow(()->
-                        new StoreNotFoundException(" with store id: "+productDto.getStoreId()
+                        new ProductNotFoundException.StoreNotFoundException(" with store id: "+productDto.getStoreId()
                         )
                 );
         Category category=categoryRepository.findById(productDto.getCategoryId())

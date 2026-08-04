@@ -5,7 +5,7 @@ import com.main.MerchantMart.payload.response.AuthResponse;
 import com.main.MerchantMart.payload.request.LoginRequest;
 import com.main.MerchantMart.payload.request.SignupRequest;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.EmailAlreadyExistsException;
+import com.main.MerchantMart.exception.conflict.EmailAlreadyExistsException;
 import com.main.MerchantMart.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

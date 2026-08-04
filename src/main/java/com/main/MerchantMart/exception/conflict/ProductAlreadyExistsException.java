@@ -1,6 +1,6 @@
-package com.main.MerchantMart.exception;
+package com.main.MerchantMart.exception.conflict;
 
-public class ProductAlreadyExistsException extends RuntimeException {
+public class ProductAlreadyExistsException extends ConflictException  {
     public ProductAlreadyExistsException(String message) {
         super(message);
     }

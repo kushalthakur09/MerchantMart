@@ -1,8 +1,8 @@
-package com.main.MerchantMart.exception;
+package com.main.MerchantMart.exception.notfound;
 
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 
-public class UserNotFoundException extends RuntimeException {
+public  class UserNotFoundException extends NotFoundException {
     public UserNotFoundException() {
         super(ExceptionMessageConstants.USER_NOT_FOUND);
     }
@@ -12,6 +12,6 @@ public class UserNotFoundException extends RuntimeException {
     }
 
     public UserNotFoundException(Long cashierId) {
-            super(ExceptionMessageConstants.CASHIER_NOT_FOUND+"with id :" + cashierId);
+        super(ExceptionMessageConstants.CASHIER_NOT_FOUND+"with id :" + cashierId);
     }
 }

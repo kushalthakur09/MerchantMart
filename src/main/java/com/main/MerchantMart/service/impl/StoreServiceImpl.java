@@ -4,8 +4,7 @@ import com.main.MerchantMart.domain.StoreStatus;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.StoreContact;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
-import com.main.MerchantMart.exception.StoreNotFoundException;
+import com.main.MerchantMart.exception.notfound.ProductNotFoundException;
 import com.main.MerchantMart.payload.dto.StoreDto;
 import com.main.MerchantMart.repository.StoreRepository;
 import com.main.MerchantMart.service.StoreService;
@@ -32,7 +31,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public StoreDto getStoreById(Long id) {
-        Store store=storeRepository.findById(id).orElseThrow( ()-> new StoreNotFoundException(" with id: " + id));
+        Store store=storeRepository.findById(id).orElseThrow( ()-> new ProductNotFoundException.StoreNotFoundException(" with id: " + id));
         return StoreMapper.toDto(store);
     }
 
@@ -44,13 +43,13 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public Store getStoreByAdmin() {
         User storeAdmin=userService.getCurrentUser();
-        return storeRepository.findByStoreAdminId(storeAdmin.getId()).orElseThrow(()-> new StoreNotFoundException(" with store admin id: "+ storeAdmin.getId()));
+        return storeRepository.findByStoreAdminId(storeAdmin.getId()).orElseThrow(()-> new ProductNotFoundException.StoreNotFoundException(" with store admin id: "+ storeAdmin.getId()));
     }
 
     @Override
     public StoreDto updateStore(Long id, StoreDto storeDto) {
         User storeAdmin=userService.getCurrentUser();
-        Store existing=storeRepository.findByStoreAdminId(storeAdmin.getId()).orElseThrow(()-> new StoreNotFoundException(" with store admin id: "+ storeAdmin.getId()));
+        Store existing=storeRepository.findByStoreAdminId(storeAdmin.getId()).orElseThrow(()-> new ProductNotFoundException.StoreNotFoundException(" with store admin id: "+ storeAdmin.getId()));
 
         existing.setBrand(storeDto.getBrand());
         existing.setDescription(storeDto.getDescription());
@@ -84,7 +83,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public StoreDto changeStatus(Long id, StoreStatus status) {
-        Store store=storeRepository.findById(id).orElseThrow(()-> new StoreNotFoundException());
+        Store store=storeRepository.findById(id).orElseThrow(()-> new ProductNotFoundException.StoreNotFoundException());
         store.setStatus(status);
         return StoreMapper.toDto(storeRepository.save(store));
     }

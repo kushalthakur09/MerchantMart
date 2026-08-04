@@ -3,7 +3,7 @@ package com.main.MerchantMart.service.impl;
 import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.entity.Branch;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.BranchNotFoundException;
+import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.payload.dto.*;
 import com.main.MerchantMart.repository.BranchRepository;
 import com.main.MerchantMart.repository.OrderItemRepository;

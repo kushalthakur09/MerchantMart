@@ -16,17 +16,22 @@ public class UserDto {
     private Long id;
 
     @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullUserName;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
+    @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 8, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;
 
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @Pattern(
+            regexp = "^[0-9]{10}$",
+            message = "Phone number must contain exactly 10 digits"
+    )
     private String phoneNo;
 
     @NotNull(message = "Role is required")

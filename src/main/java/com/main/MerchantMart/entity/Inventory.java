@@ -1,18 +1,16 @@
 package com.main.MerchantMart.entity;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Inventory {
 
@@ -20,27 +18,17 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @Column(nullable = false)
-    private  Integer quantity;
+    private Integer quantity;
 
-
+    @UpdateTimestamp
     private LocalDateTime lastUpdated;
-
-
-    @PrePersist
-    protected void prePersist(){
-        lastUpdated=LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void preUpdate(){
-        lastUpdated=LocalDateTime.now();
-    }
-
 }

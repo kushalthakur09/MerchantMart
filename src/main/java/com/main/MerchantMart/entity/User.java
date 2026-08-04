@@ -10,35 +10,34 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-@Entity
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode
 @AllArgsConstructor
-@Table(name = "users")
 @Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String fullUserName;
 
-    @Column(nullable = false,unique = true)
-    @Email
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
-
+    @Column(length = 10)
     private String phoneNo;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
     private Store store;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
     private Branch branch;
 
     @Enumerated(EnumType.STRING)
@@ -46,6 +45,7 @@ public class User {
     private Role role;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
     @UpdateTimestamp
@@ -55,6 +55,7 @@ public class User {
     private LocalDateTime lastLoginDate;
 
 
-    private  String provider;
+    @Column(length = 20)
+    private String provider;
 
 }
