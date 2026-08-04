@@ -1,8 +1,9 @@
-package com.main.MerchantMart.exception;
+package com.main.MerchantMart.exception.notfound;
+
 
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 
-public class ShiftNotFoundException extends  RuntimeException{
+public  class ShiftNotFoundException extends  NotFoundException{
     public ShiftNotFoundException(){
         super(ExceptionMessageConstants.SHIFT_NOT_FOUND);
     }

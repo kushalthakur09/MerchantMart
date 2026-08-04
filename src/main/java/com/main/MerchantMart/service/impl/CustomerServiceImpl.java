@@ -1,7 +1,7 @@
 package com.main.MerchantMart.service.impl;
 
 import com.main.MerchantMart.entity.Customer;
-import com.main.MerchantMart.exception.CustomerNotFoundException;
+import com.main.MerchantMart.exception.notfound.CustomerNotFoundException;
 import com.main.MerchantMart.payload.dto.CustomerDto;
 import com.main.MerchantMart.repository.CustomerRepository;
 import com.main.MerchantMart.service.CustomerService;

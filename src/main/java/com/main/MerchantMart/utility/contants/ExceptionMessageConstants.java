@@ -22,4 +22,6 @@ public class ExceptionMessageConstants {
     public static final String SHIFT_NOT_FOUND = "Shift not found";
     public static final String CASHIER_NOT_FOUND = "Cashier not found";
     public static final String BRANCH_BELONGS_DIFFERENT_STORE = "Branch does not belong to your store.";
+    public static final String ACCESS_DENIED_TO_STORE = "You don't have permission to manage this store";
+
 }

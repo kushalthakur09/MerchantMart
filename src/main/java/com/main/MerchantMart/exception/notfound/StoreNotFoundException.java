@@ -1,8 +1,8 @@
-package com.main.MerchantMart.exception;
+package com.main.MerchantMart.exception.notfound;
 
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 
-public class StoreNotFoundException extends  RuntimeException{
+public  class StoreNotFoundException extends  NotFoundException{
     public StoreNotFoundException(){
         super(ExceptionMessageConstants.STORE_NOT_FOUND);
     }
@@ -10,3 +10,4 @@ public class StoreNotFoundException extends  RuntimeException{
         super(ExceptionMessageConstants.STORE_NOT_FOUND+message);
     }
 }
+

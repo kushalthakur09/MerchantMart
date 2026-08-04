@@ -1,12 +1,12 @@
 package com.main.MerchantMart.utility.mapper;
 
-import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.entity.User;
+import com.main.MerchantMart.payload.dto.UserDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-@RequiredArgsConstructor
-public class UserMapper {
+public final class UserMapper {
+    private UserMapper() {
+    }
 
     public static UserDto toDto(User user){
         UserDto userResponse=new UserDto();
@@ -27,7 +27,6 @@ public class UserMapper {
                 .email(userDto.getEmail())
                 .role(userDto.getRole())
                 .phoneNo(userDto.getPhoneNo())
-                .lastLoginDate(userDto.getLastLoginDate())
                 .build();
     }
 

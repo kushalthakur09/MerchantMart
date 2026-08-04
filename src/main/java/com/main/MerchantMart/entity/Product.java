@@ -5,46 +5,54 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@Builder
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
+    private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(unique = true,nullable = false)
+    @Column(nullable = false, unique = true, length = 50)
     private String sku;
 
+    @Column(length = 500)
     private String description;
 
-    private  Double mrp;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal mrp;
 
-    private  Double sellingPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal sellingPrice;
 
-    private  String brand;
+    @Column(length = 100)
+    private String brand;
 
-    private  String image;
+    @Column(length = 500)
+    private String image;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
     @UpdateTimestamp
     private LocalDateTime updatedDate;
-
-
 }

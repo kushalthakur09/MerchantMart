@@ -2,8 +2,8 @@ package com.main.MerchantMart.service.impl;
 
 import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.AccessDeniedException;
-import com.main.MerchantMart.exception.EmailAlreadyExistsException;
+import com.main.MerchantMart.exception.forbidden.AccessDeniedException;
+import com.main.MerchantMart.exception.conflict.EmailAlreadyExistsException;
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.payload.request.CreateEmployeeRequest;

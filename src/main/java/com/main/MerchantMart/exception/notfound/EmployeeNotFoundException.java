@@ -1,8 +1,8 @@
-package com.main.MerchantMart.exception;
+package com.main.MerchantMart.exception.notfound;
 
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 
-public class EmployeeNotFoundException extends  RuntimeException{
+public class EmployeeNotFoundException extends  NotFoundException {
     public EmployeeNotFoundException(){
         super(ExceptionMessageConstants.EMPLOYEE_NOT_FOUND);
     }
