@@ -1,18 +1,19 @@
 package com.main.MerchantMart.service.impl;
 
-import com.main.MerchantMart.domain.Role;
-import com.main.MerchantMart.entity.*;
-import com.main.MerchantMart.exception.forbidden.AccessDeniedException;
+import com.main.MerchantMart.entity.Branch;
+import com.main.MerchantMart.entity.Order;
+import com.main.MerchantMart.entity.Refund;
+import com.main.MerchantMart.entity.User;
+import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.exception.notfound.OrderNotFoundException;
-import com.main.MerchantMart.exception.RefundNotFound;
+import com.main.MerchantMart.exception.notfound.RefundNotFoundException;
 import com.main.MerchantMart.payload.dto.RefundDto;
 import com.main.MerchantMart.repository.BranchRepository;
 import com.main.MerchantMart.repository.OrderRepository;
 import com.main.MerchantMart.repository.RefundRepository;
-import com.main.MerchantMart.repository.UserRepository;
+import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.RefundService;
 import com.main.MerchantMart.service.UserService;
-import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.utility.mapper.RefundMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,24 +26,33 @@ import java.util.List;
 public class RefundServiceImpl implements RefundService{
 
     private final UserService userService;
-    private final BranchRepository branchRepository;
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
     private final RefundRepository refundRepository;
+    private final AuthorizationService authorizationService;
+    private final BranchRepository branchRepository;
 
 
     @Override
     public RefundDto createRefund(RefundDto refundDto) {
-        User cashier = userService.getCurrentUser();
         Order order = orderRepository.findById(refundDto.getOrderId())
                 .orElseThrow(OrderNotFoundException::new);
         Branch branch=order.getBranch();
+
+        authorizationService.authorizeRefundCreate(branch);
+
+        User cashier = userService.getCurrentUser();
+        if (cashier.getBranch() == null
+                || !cashier.getBranch().getId().equals(branch.getId())) {
+            throw new IllegalArgumentException(
+                    "Refund can only be created from the same branch.");
+        }
         Refund refund= RefundMapper.toEntity(refundDto,branch,cashier,order);
         return RefundMapper.toDto(refundRepository.save(refund));
     }
 
     @Override
     public List<RefundDto> getAllRefunds() {
+        authorizationService.authorizeRefundViewAll();
         return refundRepository.findAll().stream().map(RefundMapper::toDto).toList();
     }
 
@@ -72,6 +82,9 @@ public class RefundServiceImpl implements RefundService{
 
     @Override
     public List<RefundDto> getRefundByBranchId(Long branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(BranchNotFoundException::new);
+        authorizationService.authorizeRefundView(branch);
         return refundRepository.findByBranchId(branchId)
                 .stream()
                 .map(RefundMapper::toDto)
@@ -80,18 +93,19 @@ public class RefundServiceImpl implements RefundService{
 
     @Override
     public RefundDto getRefundById(Long id) {
-        Refund refund=refundRepository.findById(id)
-                .orElseThrow(RefundNotFound::new);
+        Refund refund = refundRepository.findById(id)
+                .orElseThrow(RefundNotFoundException::new);
+
+        authorizationService.authorizeRefundView(refund.getBranch());
         return RefundMapper.toDto(refund);
     }
 
     @Override
     public void deleteRefund(Long id) {
-        User user=userService.getCurrentUser();
-        if(!Role.ROLE_ADMIN.equals(user.getRole())){
-            throw  new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND_DELETION);
-        }
-        this.getRefundById(id);
-        refundRepository.deleteById(id);
+        Refund refund = refundRepository.findById(id)
+                .orElseThrow(RefundNotFoundException::new);
+        authorizationService.authorizeRefundDelete(refund);
+
+        refundRepository.delete(refund);
     }
 }
