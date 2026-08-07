@@ -20,7 +20,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-    private final UserService userService;
     private final StoreRepository storeRepository;
     private final AuthorizationService authorizationService;
 
@@ -28,7 +27,9 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto createCategory(CategoryDto categoryDto) {
         Store store = storeRepository.findById(categoryDto.getStoreId())
                 .orElseThrow(StoreNotFoundException::new);
-        authorizationService.canManageStore(store);
+
+        authorizationService.authorizeCategoryCreate(store);
+
         Category category = Category.builder()
                 .name(categoryDto.getName())
                 .store(store)
@@ -39,20 +40,27 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id).orElseThrow(CategoryNotFoundException::new);
-        authorizationService.canManageStore(category.getStore());
+        authorizationService.authorizeCategoryUpdate(category);
         category.setName(categoryDto.getName());
         return CategoryMapper.toDto(categoryRepository.save(category));
     }
 
     @Override
     public List<CategoryDto> getCategoriesByStoreId(Long storeId) {
-        return categoryRepository.findByStoreId(storeId).stream().map(CategoryMapper::toDto).toList();
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(StoreNotFoundException::new);
+        authorizationService.authorizeCategoryView(store);
+
+        return categoryRepository.findByStoreId(storeId)
+                .stream()
+                .map(CategoryMapper::toDto)
+                .toList();
     }
 
     @Override
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(CategoryNotFoundException::new);
-        authorizationService.canManageStore(category.getStore());
+        authorizationService.authorizeCategoryDelete(category);
         categoryRepository.delete(category);
     }
 

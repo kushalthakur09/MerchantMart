@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RefundController {
 
-    private  final RefundService refundService;
+    private final RefundService refundService;
 
     @PostMapping
     public ResponseEntity<RefundDto> create(@Valid @RequestBody RefundDto refundDto){

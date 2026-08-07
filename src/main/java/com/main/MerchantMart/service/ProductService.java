@@ -6,11 +6,11 @@ import com.main.MerchantMart.payload.dto.ProductDto;
 import java.util.List;
 
 public interface ProductService {
-    ProductDto createProduct(ProductDto productDto, User user);
+    ProductDto createProduct(ProductDto productDto);
 
-    ProductDto updateProduct(Long id,ProductDto productDto,User user);
+    ProductDto updateProduct(Long id,ProductDto productDto);
 
-    void deleteProduct(Long id,User user);
+    void deleteProduct(Long id);
 
     List<ProductDto> getProductsByStoreId(Long storeId);
     List<ProductDto> searchByKeyword(Long storeId,String keyword);
