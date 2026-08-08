@@ -421,6 +421,118 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     public void authorizeCustomerView() {
         currentUser();
     }
+
+    @Override
+    public void authorizeShiftStart() {
+        User user = currentUser();
+        if (isAdmin(user) || isCashier(user)) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftEnd(ShiftReport shiftReport) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        if (isCashier(user)
+                && belongsToBranch(user, shiftReport.getBranch())
+                && user.getId().equals(shiftReport.getCashier().getId())) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftViewOwn() {
+        User user = currentUser();
+        if (isAdmin(user) || isCashier(user)) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftViewByCashier(User cashier) {
+
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (cashier.getBranch() == null) {
+            throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+        }
+
+        // Branch Manager → only cashiers in his branch
+        if (isBranchManager(user)
+                && belongsToBranch(user, cashier.getBranch())) {
+            return;
+        }
+
+        // Store Admin / Store Manager → employees in same store
+        if ((isStoreAdmin(user) || isStoreManager(user))
+                && belongsToStore(user, cashier.getStore())) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftViewByBranch(Branch branch) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        if ((isStoreAdmin(user) || isStoreManager(user)) && belongsToStore(user, branch.getStore())) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftReportView(ShiftReport shiftReport) {
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (shiftReport.getBranch() == null) {
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+        }
+
+        if (isStoreAdmin(user) || isStoreManager(user)) {
+            if (belongsToStore(user, shiftReport.getBranch().getStore())) {
+                return;
+            }
+        }
+
+        if (isBranchManager(user) && belongsToBranch(user, shiftReport.getBranch())) {
+            return;
+        }
+
+        if (isCashier(user)
+                && shiftReport.getCashier() != null
+                && user.getId().equals(shiftReport.getCashier().getId())) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
+
+    @Override
+    public void authorizeShiftViewAll() {
+        if (isAdmin(currentUser())) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+    }
     // ===========================
     // PRIVATE HELPERS
     // ===========================

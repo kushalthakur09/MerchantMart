@@ -3,6 +3,8 @@ package com.main.MerchantMart.utility.mapper;
 import com.main.MerchantMart.entity.ShiftReport;
 import com.main.MerchantMart.payload.dto.ShiftReportDto;
 
+import java.util.List;
+
 import static com.main.MerchantMart.utility.function.Utility.mapListToDto;
 
 public class ShiftReportMapper {
@@ -20,9 +22,15 @@ public class ShiftReportMapper {
                 .cashier(UserMapper.toDto(shiftReport.getCashier()))
                 .cashierId(shiftReport.getCashier() != null ? shiftReport.getCashier().getId() : null)
                 .branchId(shiftReport.getBranch() != null ? shiftReport.getBranch().getId() : null)
-                .recentOrders(mapListToDto(shiftReport.getRecentOrders(),OrderMapper::toDto))
-                .topSellingProducts(mapListToDto(shiftReport.getTopSellingProducts(),ProductMapper::toDto))
-                .refunds(mapListToDto(shiftReport.getRefunds(),RefundMapper::toDto))
+                .recentOrders(shiftReport.getRecentOrders() == null
+                        ? List.of()
+                        : mapListToDto(shiftReport.getRecentOrders(), OrderMapper::toDto))
+                .topSellingProducts(shiftReport.getTopSellingProducts() == null
+                        ? List.of()
+                        : mapListToDto(shiftReport.getTopSellingProducts(), ProductMapper::toDto))
+                .refunds(shiftReport.getRefunds() == null
+                        ? List.of()
+                        : mapListToDto(shiftReport.getRefunds(), RefundMapper::toDto))
                 .build();
     }
 

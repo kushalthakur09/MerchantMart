@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,26 +24,37 @@ public class ShiftReport {
 
     private LocalDateTime shiftStart;
     private LocalDateTime shiftEnd;
-    private Double totalSales;
-    private Double totalRefunds;
-    private Double netSale;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalSales;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalRefunds;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal netSale;
+
     private int totalOrders;
 
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cashier_id", nullable = false)
     private User cashier;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
     @Transient
     private List<PaymentSummary> paymentSummaries;
 
-    @OneToMany(cascade =  CascadeType.ALL)
+    @Transient
     private List<Product> topSellingProducts;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @Transient
     private List<Order> recentOrders;
 
-    @OneToMany(mappedBy = "shiftReport",cascade = CascadeType.ALL)
-    private List<Refund>  refunds;
+    @Builder.Default
+    @OneToMany(mappedBy = "shiftReport", cascade = CascadeType.ALL)
+    private List<Refund> refunds = new ArrayList<>();
 }

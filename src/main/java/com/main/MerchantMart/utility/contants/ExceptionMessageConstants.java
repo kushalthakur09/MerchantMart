@@ -28,4 +28,5 @@ public class ExceptionMessageConstants {
     public static final String ACCESS_DENIED_TO_ORDER = "You don't have permission to manage orders";
     public static final String ACCESS_DENIED_TO_CUSTOMER = "You don't have permission to manage customers";
     public static final String ACCESS_DENIED_TO_EMPLOYEE = "You don't have permission to manage employees";
+    public static final String ACCESS_DENIED_TO_SHIFT = "You don't have permission to manage shifts";
 }

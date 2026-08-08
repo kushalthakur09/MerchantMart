@@ -63,4 +63,12 @@ public interface AuthorizationService {
     void authorizeCustomerUpdate();
     void authorizeCustomerDelete();
     void authorizeCustomerView();
+
+    void authorizeShiftStart();
+    void authorizeShiftEnd(ShiftReport shiftReport);
+    void authorizeShiftViewOwn();
+    void authorizeShiftViewByCashier(User cashier);
+    void authorizeShiftViewByBranch(Branch branch);
+    void authorizeShiftReportView(ShiftReport shiftReport);
+    void authorizeShiftViewAll();
 }
