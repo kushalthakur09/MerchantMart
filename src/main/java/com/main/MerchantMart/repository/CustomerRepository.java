@@ -1,7 +1,6 @@
 package com.main.MerchantMart.repository;
 
 import com.main.MerchantMart.entity.Customer;
-import com.main.MerchantMart.payload.dto.CustomerDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

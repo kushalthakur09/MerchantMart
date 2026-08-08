@@ -1,8 +1,10 @@
 package com.main.MerchantMart.payload.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -10,12 +12,10 @@ public class OrderItemDto {
 
     private Long id;
 
-
-    @NotNull(message = "quantity is required field")
+    @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
 
-    @NotNull(message = "price is required field")
-    private Double price;
+    private BigDecimal price;
 
     private ProductDto product;
 

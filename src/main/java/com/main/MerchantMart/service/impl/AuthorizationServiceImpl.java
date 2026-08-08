@@ -112,6 +112,45 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         authorizeSameStore(store);
     }
 
+    // Order
+    @Override
+    public void authorizeOrderCreate(Branch branch) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        if (isCashier(user) && belongsToBranch(user, branch)) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_ORDER);
+    }
+
+    @Override
+    public void authorizeOrderView(Branch branch) {
+        authorizeBranch(branch, true);
+    }
+
+    @Override
+    public void authorizeOrderViewByCashier(User cashier) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        if (isStoreAdmin(user)
+                && belongsToStore(user, cashier.getStore())) {
+            return;
+        }
+        if (isStoreManager(user) && belongsToStore(user, cashier.getStore())) {
+            return;
+        }
+
+        if (isBranchManager(user) && belongsToBranch(user, cashier.getBranch())) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_ORDER);
+    }
+
     @Override
     public void authorizeInventoryCreate(Branch branch) {
         authorizeBranch(branch, true);
@@ -134,23 +173,147 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
 
     @Override
-    public void authorizeEmployeeCreate(Role role) {
-        // TODO
+    public void authorizeEmployeeCreate(Role roleToCreate) {
+
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (isStoreAdmin(user)
+                && (roleToCreate == Role.ROLE_STORE_MANAGER
+                || roleToCreate == Role.ROLE_BRANCH_MANAGER)) {
+            return;
+        }
+
+        if (isStoreManager(user) && roleToCreate == Role.ROLE_BRANCH_MANAGER) {
+            return;
+        }
+
+        if (isBranchManager(user) && roleToCreate == Role.ROLE_BRANCH_CASHIER) {
+            return;
+        }
+
+        throw new AccessDeniedException( ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+    }
+
+    @Override
+    public void authorizeEmployeeBranchView(Branch branch) {
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (belongsToStore(user, branch.getStore())
+                && (isStoreAdmin(user) || isStoreManager(user))) {
+            return;
+        }
+
+        if (isBranchManager(user) && belongsToBranch(user, branch)) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
     public void authorizeEmployeeUpdate(User employee) {
-        // TODO
+
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (isStoreAdmin(user)
+                && belongsToStore(user, employee.getStore())
+                && employee.getRole() != Role.ROLE_ADMIN) {
+            return;
+        }
+
+        if (isStoreManager(user)
+                && belongsToStore(user, employee.getStore())
+                && (isBranchManager(employee)
+                || isBranchCashier(employee))) {
+            return;
+        }
+
+        if (isBranchManager(user)
+                && belongsToBranch(user, employee.getBranch())
+                && isBranchCashier(employee)) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
     public void authorizeEmployeeDelete(User employee) {
-        // TODO
+
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (isStoreAdmin(user)
+                && belongsToStore(user, employee.getStore())) {
+            return;
+        }
+
+        if (isStoreManager(user)
+                && belongsToStore(user, employee.getStore())
+                && (isBranchManager(employee)
+                || isBranchCashier(employee))) {
+            return;
+        }
+
+        if (isBranchManager(user)
+                && belongsToBranch(user, employee.getBranch())
+                && isBranchCashier(employee)) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
     public void authorizeEmployeeView(User employee) {
-        // TODO
+
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (belongsToStore(user, employee.getStore())) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+    }
+
+    @Override
+    public void authorizeEmployeeStoreView(Store store) {
+        User user = currentUser();
+
+        if (isAdmin(user)) {
+            return;
+        }
+
+        if (belongsToStore(user, store)
+                && (isStoreAdmin(user) || isStoreManager(user))) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
@@ -175,13 +338,88 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public void authorizeRefundViewAll() {
         User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        if (isCashier(user) || isBranchManager(user)) {
+            if (user.getBranch() != null) {
+                return;
+            }
+        }
+        if (isStoreAdmin(user) || isStoreManager(user)) {
+            if (user.getStore() != null) {
+                return;
+            }
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND);
+    }
+
+    @Override
+    public void authorizeRefundViewByCashier(User cashier) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+
+        // Cashier can only view his own refunds
+        if (isCashier(user)) {
+            if (user.getId().equals(cashier.getId())) {
+                return;
+            }
+
+            throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND);
+        }
+
+        // Branch manager can view cashiers from his branch
+        if (isBranchManager(user)) {
+            if (belongsToBranch(user, cashier.getBranch())) {
+                return;
+            }
+
+            throw new AccessDeniedException( ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND);
+        }
+
+        // Store admin / manager can view cashiers from their store
+        if ((isStoreAdmin(user) || isStoreManager(user))  && belongsToStore(user, cashier.getStore())) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND);
+    }
+    @Override
+    public void authorizeOrderDelete(Order order) {
+        User user = currentUser();
+        if (isAdmin(user)) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_ORDER);
+    }
+
+
+    @Override
+    public void authorizeCustomerCreate() {
+        currentUser();
+    }
+
+    @Override
+    public void authorizeCustomerUpdate() {
+        currentUser();
+    }
+
+    @Override
+    public void authorizeCustomerDelete() {
+        User user = currentUser();
 
         if (isAdmin(user)) {
             return;
         }
 
-        throw new AccessDeniedException(
-                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND);
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_CUSTOMER);
+    }
+
+    @Override
+    public void authorizeCustomerView() {
+        currentUser();
     }
     // ===========================
     // PRIVATE HELPERS
@@ -255,6 +493,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return user.getRole() == Role.ROLE_BRANCH_CASHIER;
     }
 
+    private boolean isBranchCashier(User user) {
+        return user.getRole() == Role.ROLE_BRANCH_CASHIER;
+    }
     private boolean belongsToStore(User user, Store store) {
         return user.getStore() != null
                 && user.getStore().getId().equals(store.getId());

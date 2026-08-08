@@ -25,6 +25,8 @@ public interface RefundRepository extends JpaRepository<Refund, Long> {
             LocalDateTime toDate
     );
 
+    List<Refund> findByBranchStoreId(Long storeId);
+
     @Query("""
             SELECT COALESCE(SUM(r.amount),0)
             FROM Refund r

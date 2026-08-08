@@ -6,13 +6,14 @@ import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.exception.notfound.EmployeeNotFoundException;
-import com.main.MerchantMart.exception.notfound.ProductNotFoundException;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
 import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.repository.BranchRepository;
 import com.main.MerchantMart.repository.StoreRepository;
 import com.main.MerchantMart.repository.UserRepository;
+import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.EmployeeService;
+import com.main.MerchantMart.service.UserService;
 import com.main.MerchantMart.utility.contants.AuthConstants;
 import com.main.MerchantMart.utility.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -30,94 +30,167 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final StoreRepository storeRepository;
     private final BranchRepository branchRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthorizationService authorizationService;
+    private final UserService userService;
 
     @Override
     public UserDto createStoreEmployee(UserDto employee, Long storeId) {
-        Store store=storeRepository.findById(storeId)
+
+        Store store = storeRepository.findById(storeId)
                 .orElseThrow(StoreNotFoundException::new);
 
-        Branch branch=null;
-        if(Role.ROLE_BRANCH_MANAGER.equals(employee.getRole())){
-            if(Objects.isNull(employee.getBranchId())){
-                throw new IllegalArgumentException("Branch ID is required for Branch Manager role");
-            }
-            branch=branchRepository.findById(employee.getBranchId())
-                    .orElseThrow(BranchNotFoundException::new);
+        authorizationService.authorizeEmployeeCreate(employee.getRole());
+
+        if (employee.getRole() != Role.ROLE_STORE_MANAGER && employee.getRole() != Role.ROLE_BRANCH_MANAGER) {
+            throw new IllegalArgumentException("Only Store Manager or Branch Manager can be created at store level.");
         }
-        User user= UserMapper.toEntity(employee);
+
+        Branch branch = null;
+
+        if (Role.ROLE_BRANCH_MANAGER.equals(employee.getRole())) {
+
+            if (employee.getBranchId() == null) {
+                throw new IllegalArgumentException("Branch ID is required for Branch Manager role.");
+            }
+
+            branch = branchRepository.findById(employee.getBranchId())
+                    .orElseThrow(BranchNotFoundException::new);
+
+            if (!branch.getStore().getId().equals(store.getId())) {
+                throw new IllegalArgumentException("Branch does not belong to the selected store.");
+            }
+        }
+
+        User user = UserMapper.toEntity(employee);
         user.setPassword(passwordEncoder.encode(employee.getPassword()));
         user.setStore(store);
         user.setBranch(branch);
         user.setProvider(AuthConstants.PROVIDER_LOCAL);
 
-        User savedUser=employeeRepository.save(user);
-        if(branch != null && Role.ROLE_BRANCH_MANAGER.equals(employee.getRole())){
+        User savedUser = employeeRepository.save(user);
+
+        if (branch != null) {
             branch.setManager(savedUser);
             branchRepository.save(branch);
         }
-
         return UserMapper.toDto(savedUser);
     }
 
     @Override
-    public UserDto createBranchEmployee(UserDto employeeDto, Long brandId) {
+    public UserDto createBranchEmployee(UserDto employeeDto, Long branchId) {
 
-        Branch branch=branchRepository.findById(brandId)
+        Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
 
-        if(Role.ROLE_BRANCH_CASHIER.equals(employeeDto.getRole())
-                || Role.ROLE_BRANCH_MANAGER.equals(employeeDto.getRole())){
+        authorizationService.authorizeEmployeeCreate(employeeDto.getRole());
 
-            User employee = UserMapper.toEntity(employeeDto);
-            employee.setPassword(passwordEncoder.encode(employeeDto.getPassword()));
-            employee.setBranch(branch);
-            return UserMapper.toDto(employeeRepository.save(employee));
+        if (!Role.ROLE_BRANCH_CASHIER.equals(employeeDto.getRole())) {
+            throw new IllegalArgumentException("Only Branch Cashier can be created at branch level.");
         }
 
-        throw new IllegalArgumentException("Only ROLE_BRANCH_CASHIER or ROLE_BRANCH_MANAGER can be assigned to a branch");
+        User employee = UserMapper.toEntity(employeeDto);
+        employee.setPassword(passwordEncoder.encode(employeeDto.getPassword()));
+        employee.setStore(branch.getStore());
+        employee.setBranch(branch);
+        employee.setProvider(AuthConstants.PROVIDER_LOCAL);
+
+        return UserMapper.toDto(employeeRepository.save(employee));
     }
 
     @Override
-    public User updateEmployee(Long id, UserDto updatedEmployeeDto) {
+    public UserDto updateEmployee(Long id, UserDto dto) {
+
         User employee = employeeRepository.findById(id)
                 .orElseThrow(EmployeeNotFoundException::new);
 
-        Branch branch=branchRepository.findById(updatedEmployeeDto.getBranchId())
+        authorizationService.authorizeEmployeeUpdate(employee);
+
+        if (dto.getFullUserName() != null) {
+            employee.setFullUserName(dto.getFullUserName());
+        }
+
+        if (dto.getEmail() != null) {
+            employee.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null) {
+            employee.setPassword(
+                    passwordEncoder.encode(dto.getPassword())
+            );
+        }
+
+        if (dto.getRole() != null
+                && dto.getRole() != employee.getRole()) {
+
+            authorizationService.authorizeEmployeeCreate(dto.getRole());
+
+            if (dto.getRole() == Role.ROLE_STORE_MANAGER) {
+                employee.setBranch(null);
+            }
+
+            if (dto.getRole() == Role.ROLE_BRANCH_MANAGER
+                    || dto.getRole() == Role.ROLE_BRANCH_CASHIER) {
+
+                if (dto.getBranchId() == null) {
+                    throw new IllegalArgumentException(
+                            "Branch ID is required for this role.");
+                }
+
+                Branch branch = branchRepository.findById(dto.getBranchId())
                         .orElseThrow(BranchNotFoundException::new);
-        if (updatedEmployeeDto.getFullUserName() != null) {
-            employee.setFullUserName(updatedEmployeeDto.getFullUserName());
+
+                if (!branch.getStore().getId()
+                        .equals(employee.getStore().getId())) {
+                    throw new IllegalArgumentException(
+                            "Branch does not belong to employee's store.");
+                }
+
+                employee.setBranch(branch);
+
+                if (dto.getRole() == Role.ROLE_BRANCH_MANAGER) {
+                    branch.setManager(employee);
+                    branchRepository.save(branch);
+                }
+            }
+
+            employee.setRole(dto.getRole());
         }
-        if (updatedEmployeeDto.getEmail() != null) {
-            employee.setEmail(updatedEmployeeDto.getEmail());
-        }
-        if (updatedEmployeeDto.getRole() != null) {
-            employee.setRole(updatedEmployeeDto.getRole());
-        }
-        if (updatedEmployeeDto.getPassword() != null) {
-            employee.setPassword(passwordEncoder.encode(updatedEmployeeDto.getPassword()));
-        }
-        employee.setBranch(branch);
-        return employeeRepository.save(employee);
+
+        return UserMapper.toDto(employeeRepository.save(employee));
     }
 
     @Override
     public void deleteEmployee(Long id) {
-            User employee=employeeRepository.findById(id)
-                            .orElseThrow(EmployeeNotFoundException::new);
-            employeeRepository.delete(employee);
+
+        User employee = employeeRepository.findById(id)
+                .orElseThrow(EmployeeNotFoundException::new);
+
+        authorizationService.authorizeEmployeeDelete(employee);
+
+        if (employee.getRole() == Role.ROLE_BRANCH_MANAGER
+                && employee.getBranch() != null
+                && employee.getBranch().getManager() != null
+                && employee.getBranch().getManager().getId().equals(employee.getId())) {
+
+            Branch branch = employee.getBranch();
+            branch.setManager(null);
+            branchRepository.save(branch);
+        }
+
+        employeeRepository.delete(employee);
     }
 
     @Override
     public List<UserDto> findStoreEmployees(Long storeId, Role role) {
-        Store store=storeRepository.findById(storeId)
+
+        Store store = storeRepository.findById(storeId)
                 .orElseThrow(StoreNotFoundException::new);
 
-        List<User> employees= employeeRepository.findByStore(store)
-                .stream()
-                .filter(employee -> (role == null || employee.getRole() == role))
-                .toList();
+        authorizationService.authorizeEmployeeStoreView(store);
 
-        return  employees.stream()
+        return employeeRepository.findByStore(store)
+                .stream()
+                .filter(employee -> role == null || employee.getRole() == role)
                 .map(UserMapper::toDto)
                 .toList();
     }
@@ -127,8 +200,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<UserDto> findBranchEmployees(Long branchId, Role role) {
         Branch branch=branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
-
-     List<User> employees=employeeRepository.findByBranchId(branchId)
+        authorizationService.authorizeEmployeeBranchView(branch);
+        List<User> employees=employeeRepository.findByBranchId(branchId)
              .stream()
              .filter(employee -> (role == null || employee.getRole() == role))
              .toList();

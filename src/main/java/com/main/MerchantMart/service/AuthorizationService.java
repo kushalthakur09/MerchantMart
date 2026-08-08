@@ -30,6 +30,12 @@ public interface AuthorizationService {
     void authorizeProductDelete(Product product);
     void authorizeProductView(Store product);
 
+    //Order
+    void authorizeOrderCreate(Branch branch);
+    void authorizeOrderView(Branch branch);
+    void authorizeOrderViewByCashier(User cashier);
+    void authorizeOrderDelete(Order order);
+
     // Inventory
     void authorizeInventoryCreate(Branch branch);
     void authorizeInventoryUpdate(Inventory inventory);
@@ -41,10 +47,20 @@ public interface AuthorizationService {
     void authorizeEmployeeUpdate(User employee);
     void authorizeEmployeeDelete(User employee);
     void authorizeEmployeeView(User employee);
+    void authorizeEmployeeStoreView(Store store);
+    void authorizeEmployeeBranchView(Branch branch);
 
     // Refund
     void authorizeRefundCreate(Branch branch);
     void authorizeRefundView(Branch branch);
     void authorizeRefundDelete(Refund refund);
     void authorizeRefundViewAll();
+
+
+    void authorizeRefundViewByCashier(User cashier);
+
+    void authorizeCustomerCreate();
+    void authorizeCustomerUpdate();
+    void authorizeCustomerDelete();
+    void authorizeCustomerView();
 }

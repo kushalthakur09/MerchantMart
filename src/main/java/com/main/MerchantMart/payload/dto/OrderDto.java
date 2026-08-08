@@ -1,11 +1,13 @@
 package com.main.MerchantMart.payload.dto;
 
+import com.main.MerchantMart.domain.OrderStatus;
 import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.entity.Customer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,20 +17,16 @@ public class OrderDto {
 
     private Long id;
 
-
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     private LocalDateTime createdDate;
 
     private BranchDto branch;
-
-    private Long brandId;
+    private Long branchId;
 
     private UserDto cashier;
 
-    @NotNull(message = "Total amount is mandatory field")
-    private Customer customer;
-
+    @NotNull(message = "Customer is mandatory")
     private Long customerId;
 
     @NotNull(message = "Item List is mandatory field")
@@ -36,4 +34,6 @@ public class OrderDto {
 
     @NotNull(message = "Payment Type is mandatory field")
     private PaymentType paymentType;
+
+    private OrderStatus status;
 }

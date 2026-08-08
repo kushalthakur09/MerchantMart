@@ -4,6 +4,7 @@ import com.main.MerchantMart.entity.Customer;
 import com.main.MerchantMart.exception.notfound.CustomerNotFoundException;
 import com.main.MerchantMart.payload.dto.CustomerDto;
 import com.main.MerchantMart.repository.CustomerRepository;
+import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.CustomerService;
 import com.main.MerchantMart.utility.mapper.CustomerMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,50 +17,65 @@ import java.util.List;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final AuthorizationService authorizationService;
 
     @Override
     public CustomerDto createCustomer(CustomerDto customerDto) {
-        return CustomerMapper.toDto(
-                customerRepository.save(CustomerMapper.toEntity(customerDto))
-        );
+        authorizationService.authorizeCustomerCreate();
+        Customer customer = CustomerMapper.toEntity(customerDto);
+        return CustomerMapper.toDto(customerRepository.save(customer));
     }
 
     @Override
     public CustomerDto updateCustomer(Long id, CustomerDto customerDto) {
 
-        Customer customer=customerRepository.findById(id).
-                orElseThrow(CustomerNotFoundException::new);
+        authorizationService.authorizeCustomerUpdate();
 
-        if(customerDto.getFullName() != null)
-                customer.setFullName(customerDto.getFullName());
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(CustomerNotFoundException::new);
 
-        if(customerDto.getEmail() != null)
-                customer.setEmail(customerDto.getEmail());
+        if (customerDto.getFullName() != null) {
+            customer.setFullName(customerDto.getFullName());
+        }
 
-        if(customerDto.getPhoneNo() != null)
-                customer.setPhoneNo(customerDto.getPhoneNo());
+        if (customerDto.getEmail() != null) {
+            customer.setEmail(customerDto.getEmail());
+        }
 
+        if (customerDto.getPhoneNo() != null) {
+            customer.setPhoneNo(customerDto.getPhoneNo());
+        }
 
         return CustomerMapper.toDto(customerRepository.save(customer));
     }
 
     @Override
     public void deleteCustomer(Long id) {
-            Customer customer=customerRepository.findById(id)
-                    .orElseThrow(CustomerNotFoundException::new);
 
-            customerRepository.delete(customer);
+        authorizationService.authorizeCustomerDelete();
+
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(CustomerNotFoundException::new);
+
+        customerRepository.delete(customer);
     }
 
     @Override
     public CustomerDto getCustomer(Long id) {
-        Customer customer=customerRepository.findById(id)
+
+        authorizationService.authorizeCustomerView();
+
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(CustomerNotFoundException::new);
+
         return CustomerMapper.toDto(customer);
     }
 
     @Override
     public List<CustomerDto> getAllCustomer() {
+
+        authorizationService.authorizeCustomerView();
+
         return customerRepository.findAll()
                 .stream()
                 .map(CustomerMapper::toDto)
@@ -68,10 +84,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDto> search(String keyword) {
+
+        authorizationService.authorizeCustomerView();
+
         return customerRepository
-                .findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword,keyword)
+                .findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        keyword, keyword)
                 .stream()
                 .map(CustomerMapper::toDto)
                 .toList();
     }
+
 }
