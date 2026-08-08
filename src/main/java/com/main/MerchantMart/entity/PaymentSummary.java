@@ -5,13 +5,15 @@ import com.main.MerchantMart.domain.PaymentType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class PaymentSummary {
 
     private PaymentType paymentType;
 
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     private Integer transactionCount;
 
