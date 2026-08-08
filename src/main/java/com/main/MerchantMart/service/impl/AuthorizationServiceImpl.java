@@ -47,6 +47,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         authorizeStore(store, true);
     }
 
+    @Override
+    public void authorizeStoreViewAll() {
+        if (isAdmin(currentUser())) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_STORE);
+    }
+
     // ===========================
     // BRANCH
     // ===========================

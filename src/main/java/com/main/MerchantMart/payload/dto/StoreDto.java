@@ -3,6 +3,7 @@ package com.main.MerchantMart.payload.dto;
 import com.main.MerchantMart.domain.StoreStatus;
 import com.main.MerchantMart.entity.StoreContact;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +17,6 @@ public class StoreDto {
 
     private Long id;
 
-    private String brand;
-
     private UserDto storeAdmin;
 
     private LocalDateTime createdDate;
@@ -26,6 +25,10 @@ public class StoreDto {
 
     private String description;
 
+    @NotBlank(message = "Brand is required")
+    private String brand;
+
+    @NotBlank(message = "Store type is required")
     private String storeType;
 
     private StoreStatus status;

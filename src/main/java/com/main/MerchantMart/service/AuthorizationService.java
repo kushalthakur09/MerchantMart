@@ -11,7 +11,7 @@ public interface AuthorizationService {
     void authorizeStoreUpdate(Store store);
     void authorizeStoreDelete(Store store);
     void authorizeStoreView(Store store);
-
+    void authorizeStoreViewAll();
     // Branch
     void authorizeBranchCreate(Store store);
     void authorizeBranchUpdate(Branch branch);
