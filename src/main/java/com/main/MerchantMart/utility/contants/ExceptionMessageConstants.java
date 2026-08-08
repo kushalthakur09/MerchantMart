@@ -21,9 +21,11 @@ public class ExceptionMessageConstants {
     public static final String SHIFT_ALREADY_STARTED = "Shift has already been started";
     public static final String SHIFT_NOT_FOUND = "Shift not found";
     public static final String CASHIER_NOT_FOUND = "Cashier not found";
-    public static final String ACCESS_DENIED_TO_STORE = "You don't have permission to manage this store";
-
-    public static final String ACCESS_DENIED_TO_BRANCH = "You don't have permission to manage this branch";
-    public static final String ACCESS_DENIED_TO_PRODUCT = "You don't have permission to manage this product";
-    public static final String ACCESS_DENIED_TO_REFUND = "You don't have permission to manage this refund";
+    public static final String ACCESS_DENIED_TO_STORE = "You don't have permission to manage this storea";
+    public static final String ACCESS_DENIED_TO_BRANCH = "You don't have permission to manage this branches";
+    public static final String ACCESS_DENIED_TO_PRODUCT = "You don't have permission to manage this products";
+    public static final String ACCESS_DENIED_TO_REFUND = "You don't have permission to manage this refunds";
+    public static final String ACCESS_DENIED_TO_ORDER = "You don't have permission to manage orders";
+    public static final String ACCESS_DENIED_TO_CUSTOMER = "You don't have permission to manage customers";
+    public static final String ACCESS_DENIED_TO_EMPLOYEE = "You don't have permission to manage employees";
 }

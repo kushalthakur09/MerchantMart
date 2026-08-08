@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -24,25 +27,37 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // one order can have many refunds
-    @ManyToOne
-    private Order order;
-
     private String reason;
 
-    private  Double amount;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cashier_id", nullable = false)
+    private User cashier;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
 
     @ManyToOne
     @JsonIgnore
     private ShiftReport shiftReport;
 
-    @ManyToOne
-    private User cashier;
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "refund",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<RefundItem> items = new ArrayList<>();
 
-    @ManyToOne
-    private Branch branch;
-
-    private PaymentType  paymentType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentType paymentType;
 
     @CreationTimestamp
     private LocalDateTime  createdDate;

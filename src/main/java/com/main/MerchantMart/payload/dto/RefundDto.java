@@ -8,38 +8,41 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class RefundDto {
+
     private Long id;
 
     private OrderDto order;
+
+    @NotNull(message = "Order is required")
     private Long orderId;
 
-    @NotBlank(message = "reason for refund is required")
+    @NotBlank(message = "Reason for refund is required")
     private String reason;
 
-    @NotNull(message = "amount is required")
-    private Double amount;
+    private BigDecimal amount;
 
-    //        private ShiftReport shiftReport;
     private Long shiftReportId;
 
     private UserDto cashier;
-
     private String cashierName;
 
     private BranchDto branch;
-    private Long brandId;
 
-    @NotNull(message = "payment type is required")
+    @Builder.Default
+    private List<RefundItemDto> items = new ArrayList<>();
+
+    @NotNull(message = "Payment type is required")
     private PaymentType paymentType;
 
     private LocalDateTime createdDate;
-
-
 }

@@ -12,20 +12,21 @@ public class OrderMapper {
                 OrderDto.builder()
                         .id(order.getId())
                         .totalAmount(order.getTotalAmount())
-                        .brandId(order.getBranch() != null ? order.getBranch().getId(): null)
+                        .branchId(order.getBranch() != null ? order.getBranch().getId(): null)
                         .cashier(UserMapper.toDto(order.getCashier()))
-//                        .branch(BranchMapper.toDto(order.getBranch()))
-                        .customer(order.getCustomer())
+                        .customerId(order.getCustomer() != null ?order.getCustomer().getId() : null )
                         .paymentType(order.getPaymentType())
                         .items(order.getItems().stream().map(OrderItemMapper::toDto).toList())
+                        .status(order.getStatus())
                         .build();
     }
-    public static Order toEntity(OrderDto orderDto, User cashier,Branch branch){
+    public static Order toEntity(OrderDto orderDto, User cashier, Branch branch) {
         return Order.builder()
                 .totalAmount(orderDto.getTotalAmount())
                 .branch(branch)
                 .cashier(cashier)
-//                .orderItemList(orderDto.getOrderItemList().stream().map(OrderItemMapper::t).toList())
+                .paymentType(orderDto.getPaymentType())
+                .status(orderDto.getStatus())
                 .build();
     }
 }
