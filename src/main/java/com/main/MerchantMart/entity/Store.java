@@ -43,6 +43,7 @@ public class Store {
     @Column(nullable = false)
     private StoreStatus status;
 
+    @Builder.Default
     @Embedded
     private StoreContact contact=new StoreContact();
 

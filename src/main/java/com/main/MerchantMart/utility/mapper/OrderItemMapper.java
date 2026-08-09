@@ -5,6 +5,8 @@ import com.main.MerchantMart.entity.OrderItem;
 import com.main.MerchantMart.entity.Product;
 import com.main.MerchantMart.payload.dto.OrderItemDto;
 
+import java.math.BigDecimal;
+
 public class OrderItemMapper {
 
     public static OrderItemDto toDto(OrderItem orderItem){
@@ -26,7 +28,7 @@ public class OrderItemMapper {
     public static OrderItem toEntity(OrderItemDto orderItemDto, Order order, Product product){
         return OrderItem
                 .builder()
-                .price(product.getSellingPrice() * orderItemDto.getQuantity())
+                .price(product.getSellingPrice().multiply(BigDecimal.valueOf(orderItemDto.getQuantity())))
                 .quantity(orderItemDto.getQuantity())
                 .order(order)
                 .product(product)

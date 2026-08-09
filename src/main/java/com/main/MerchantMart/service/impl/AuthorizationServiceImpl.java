@@ -19,11 +19,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public void authorizeStoreCreate() {
         User user = currentUser();
-
-        if (isAdmin(user)) {
+        if (isStoreAdmin(user)) {
             return;
         }
-
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_STORE);
     }
 
@@ -99,15 +97,18 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         if (isStoreAdmin(user) && belongsToStore(user, branch.getStore())) {
             return;
         }
-        if (isBranchManager(user) && belongsToBranch(user, branch)) {
-            return;
-        }
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_BRANCH);
     }
 
     @Override
     public void authorizeBranchDelete(Branch branch) {
-        authorizeStore(branch.getStore(), false);
+        authorizeStoreAccess(branch.getStore());
+        User user = currentUser();
+        if (isStoreAdmin(user) && belongsToStore(user, branch.getStore())) {
+            return;
+        }
+
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_BRANCH);
     }
 
     @Override
@@ -235,18 +236,28 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public void authorizeInventoryCreate(Branch branch) {
         authorizeStoreAccess(branch.getStore());
+
         User user = currentUser();
-        if (isAdmin(user)) {
-            return;
-        }
-        if (isStoreAdmin(user)  && belongsToStore(user, branch.getStore())) {
+
+        if (isStoreAdmin(user) && belongsToStore(user, branch.getStore())) {
             return;
         }
 
-        if (isStoreManager(user) && belongsToStore(user, branch.getStore())) {
+        if (isBranchManager(user) && belongsToBranch(user, branch)) {
             return;
         }
 
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_INVENTORY);
+    }
+
+    @Override
+    public void authorizeInventoryUpdate(Inventory inventory) {
+        Branch branch = inventory.getBranch();
+        authorizeStoreAccess(branch.getStore());
+        User user = currentUser();
+        if (isStoreAdmin(user) && belongsToStore(user, branch.getStore())) {
+            return;
+        }
         if (isBranchManager(user) && belongsToBranch(user, branch)) {
             return;
         }
@@ -254,14 +265,19 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public void authorizeInventoryUpdate(Inventory inventory) {
-        authorizeStoreAccess(inventory.getBranch().getStore());
-        authorizeBranch(inventory.getBranch(), true);
-    }
-
-    @Override
     public void authorizeInventoryDelete(Inventory inventory) {
-        authorizeStore(inventory.getBranch().getStore(), false);
+        Branch branch = inventory.getBranch();
+        authorizeStoreAccess(branch.getStore());
+        User user = currentUser();
+
+        if (isStoreAdmin(user) && belongsToStore(user, branch.getStore())) {
+            return;
+        }
+
+        if (isBranchManager(user) && belongsToBranch(user, branch)) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_INVENTORY);
     }
 
     @Override
