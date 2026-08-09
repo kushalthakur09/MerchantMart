@@ -34,10 +34,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto createProduct(ProductDto productDto) {
         Store store=storeRepository.findById(productDto.getStoreId())
                 .orElseThrow(()-> new StoreNotFoundException(" with store id: "+productDto.getStoreId()));
-
         authorizationService.authorizeProductCreate(store);
+
         Category category=categoryRepository.findById(productDto.getCategoryId())
                 .orElseThrow(CategoryNotFoundException::new);
+        if (!category.getStore().getId().equals(store.getId())) {
+            throw new IllegalArgumentException("Category does not belong to the selected store.");
+        }
 
         Product isExits=productRepository.findBySku(productDto.getSku());
 
@@ -53,8 +56,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto updateProduct(Long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
-
         authorizationService.authorizeProductUpdate(product);
+
         if (productDto.getName() != null) {
             product.setName(productDto.getName());
         }
@@ -102,11 +105,9 @@ public class ProductServiceImpl implements ProductService {
         if (productDto.getCategoryId() != null) {
             Category category = categoryRepository.findById(productDto.getCategoryId())
                     .orElseThrow(CategoryNotFoundException::new);
-
             if (!category.getStore().getId().equals(product.getStore().getId())) {
                 throw new IllegalArgumentException("Category does not belong to the same store.");
             }
-
             product.setCategory(category);
         }
         return ProductMapper.toDto(productRepository.save(product));
@@ -135,6 +136,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDto> searchByKeyword(Long storeId, String keyword) {
-        return productRepository.searchByKeyword(storeId,keyword).stream().map(ProductMapper::toDto).toList();
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(StoreNotFoundException::new);
+        authorizationService.authorizeProductSearch(store);
+        return productRepository.searchByKeyword(storeId, keyword)
+                .stream()
+                .map(ProductMapper::toDto)
+                .toList();
     }
 }

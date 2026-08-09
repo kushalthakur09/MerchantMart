@@ -37,12 +37,9 @@ public class RefundServiceImpl implements RefundService{
     @Transactional
     @Override
     public RefundDto createRefund(RefundDto refundDto) {
-
         Order order = orderRepository.findById(refundDto.getOrderId())
                 .orElseThrow(OrderNotFoundException::new);
-
         Branch branch = order.getBranch();
-
         authorizationService.authorizeRefundCreate(branch);
 
         User cashier = userService.getCurrentUser();
@@ -59,6 +56,16 @@ public class RefundServiceImpl implements RefundService{
             throw new IllegalArgumentException("At least one item is required for refund.");
         }
 
+        long distinctItems = refundDto.getItems()
+                .stream()
+                .map(RefundItemDto::getOrderItemId)
+                .distinct()
+                .count();
+
+        if (distinctItems != refundDto.getItems().size()) {
+            throw new IllegalArgumentException("Duplicate order item is not allowed in the same refund.");
+        }
+
         Refund refund = RefundMapper.toEntity(
                 refundDto,
                 branch,
@@ -69,6 +76,12 @@ public class RefundServiceImpl implements RefundService{
         BigDecimal totalRefundAmount = BigDecimal.ZERO;
 
         for (RefundItemDto itemDto : refundDto.getItems()) {
+
+            if (itemDto.getQuantity() == null || itemDto.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Refund quantity must be greater than zero.");
+            }
+
+
             OrderItem orderItem = order.getItems()
                     .stream()
                     .filter(item -> item.getId().equals(itemDto.getOrderItemId()))
@@ -77,12 +90,14 @@ public class RefundServiceImpl implements RefundService{
 
             Integer alreadyRefunded =refundItemRepository.getTotalRefundedQuantity(orderItem.getId());
 
+
             int availableQuantity = orderItem.getQuantity() - alreadyRefunded;
 
             if (itemDto.getQuantity() > availableQuantity) {
                 throw new IllegalArgumentException( "Refund quantity exceeds available quantity for product: "
                                 + orderItem.getProduct().getName());
             }
+
 
             BigDecimal refundAmount =orderItem.getPrice()
                             .multiply(BigDecimal.valueOf(itemDto.getQuantity()));
@@ -137,6 +152,8 @@ public class RefundServiceImpl implements RefundService{
 
         User user = userService.getCurrentUser();
 
+        authorizationService.authorizeRefundViewAll();
+
         if (user.getRole() == Role.ROLE_ADMIN) {
             return refundRepository.findAll()
                     .stream()
@@ -145,8 +162,6 @@ public class RefundServiceImpl implements RefundService{
         }
 
         if (user.getBranch() != null) {
-            authorizationService.authorizeRefundViewAll();
-
             return refundRepository.findByBranchId(user.getBranch().getId())
                     .stream()
                     .map(RefundMapper::toDto)
@@ -154,8 +169,6 @@ public class RefundServiceImpl implements RefundService{
         }
 
         if (user.getStore() != null) {
-            authorizationService.authorizeRefundViewAll();
-
             return refundRepository.findByBranchStoreId(user.getStore().getId())
                     .stream()
                     .map(RefundMapper::toDto)

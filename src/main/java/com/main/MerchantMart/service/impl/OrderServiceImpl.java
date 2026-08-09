@@ -131,15 +131,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDto> getOrderByCashier(Long cashierId) {
-        // A cashier can only view orders from their own branch.
-        // Higher-level users can view orders according to their branch hierarchy.
         User requestedCashier = userRepository.findById(cashierId)
-                .orElseThrow(()-> new UserNotFoundException(cashierId));
+                .orElseThrow(() -> new UserNotFoundException(cashierId));
 
         if (requestedCashier.getBranch() == null) {
             throw new BranchNotFoundException();
         }
 
+        authorizationService.authorizeStoreAccess(requestedCashier.getBranch().getStore());
         authorizationService.authorizeOrderViewByCashier(requestedCashier);
 
         return orderRepository.findByCashierId(cashierId)

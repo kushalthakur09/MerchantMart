@@ -1,7 +1,6 @@
 package com.main.MerchantMart.controller;
 
 import com.main.MerchantMart.domain.Role;
-import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.EmployeeService;

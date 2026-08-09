@@ -4,11 +4,9 @@ import com.main.MerchantMart.domain.StoreStatus;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.entity.StoreContact;
 import com.main.MerchantMart.entity.User;
-import com.main.MerchantMart.exception.notfound.ProductNotFoundException;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
 import com.main.MerchantMart.payload.dto.StoreDto;
 import com.main.MerchantMart.repository.StoreRepository;
-import com.main.MerchantMart.service.AuthService;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.StoreService;
 import com.main.MerchantMart.service.UserService;
@@ -27,11 +25,11 @@ public class StoreServiceImpl implements StoreService {
     private final AuthorizationService authorizationService;
 
     @Override
-    public StoreDto createStore(StoreDto storeDto, User user) {
+    public StoreDto createStore(StoreDto storeDto) {
+        User storeAdmin = userService.getCurrentUser();
         authorizationService.authorizeStoreCreate();
-        Store store = StoreMapper.toEntity(storeDto, user);
+        Store store = StoreMapper.toEntity(storeDto, storeAdmin);
         store.setStatus(StoreStatus.PENDING);
-
         return StoreMapper.toDto(storeRepository.save(store));
     }
 
@@ -41,6 +39,7 @@ public class StoreServiceImpl implements StoreService {
                 .orElseThrow(() -> new StoreNotFoundException(" with id: " + id));
 
         authorizationService.authorizeStoreView(store);
+        authorizationService.authorizeStoreAccess(store);
         return StoreMapper.toDto(store);
     }
 
@@ -59,6 +58,7 @@ public class StoreServiceImpl implements StoreService {
         Store store = storeRepository.findByStoreAdminId(storeAdmin.getId())
                 .orElseThrow(() ->new StoreNotFoundException(" with store admin id: " + storeAdmin.getId()));
         authorizationService.authorizeStoreView(store);
+
         return store;
     }
 
@@ -92,9 +92,7 @@ public class StoreServiceImpl implements StoreService {
             existing.setContact(contact);
         }
 
-        return StoreMapper.toDto(
-                storeRepository.save(existing)
-        );
+        return StoreMapper.toDto(storeRepository.save(existing));
     }
 
     @Override
@@ -109,14 +107,13 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public StoreDto getStoreByEmployee() {
-        User user=userService.getCurrentUser();
+        User user = userService.getCurrentUser();
+        if (user.getStore() == null) {
+            throw new StoreNotFoundException("Store not found for employee");
+        }
+        authorizationService.authorizeStoreView(user.getStore());
+        authorizationService.authorizeStoreAccess(user.getStore());
         return StoreMapper.toDto(user.getStore());
     }
 
-    @Override
-    public StoreDto changeStatus(Long id, StoreStatus status) {
-        Store store=storeRepository.findById(id).orElseThrow(StoreNotFoundException::new);
-        store.setStatus(status);
-        return StoreMapper.toDto(storeRepository.save(store));
-    }
 }

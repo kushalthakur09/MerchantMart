@@ -39,7 +39,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(StoreNotFoundException::new);
 
-        authorizationService.authorizeEmployeeCreate(employee.getRole());
+        authorizationService.authorizeEmployeeCreate(store,employee.getRole(),null);
 
         if (employee.getRole() != Role.ROLE_STORE_MANAGER && employee.getRole() != Role.ROLE_BRANCH_MANAGER) {
             throw new IllegalArgumentException("Only Store Manager or Branch Manager can be created at store level.");
@@ -82,7 +82,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
 
-        authorizationService.authorizeEmployeeCreate(employeeDto.getRole());
+        authorizationService.authorizeEmployeeCreate(branch.getStore(),employeeDto.getRole(),branch);
 
         if (!Role.ROLE_BRANCH_CASHIER.equals(employeeDto.getRole())) {
             throw new IllegalArgumentException("Only Branch Cashier can be created at branch level.");
@@ -114,40 +114,40 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         if (dto.getPassword() != null) {
-            employee.setPassword(
-                    passwordEncoder.encode(dto.getPassword())
-            );
+            employee.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
         if (dto.getRole() != null
                 && dto.getRole() != employee.getRole()) {
 
-            authorizationService.authorizeEmployeeCreate(dto.getRole());
+            Branch branch = null;
+
+            if (dto.getRole() == Role.ROLE_BRANCH_MANAGER  || dto.getRole() == Role.ROLE_BRANCH_CASHIER) {
+
+                if (dto.getBranchId() == null) {
+                    throw new IllegalArgumentException("Branch ID is required for this role.");
+                }
+
+                branch = branchRepository.findById(dto.getBranchId())
+                        .orElseThrow(BranchNotFoundException::new);
+
+                if (!branch.getStore().getId().equals(employee.getStore().getId())) {
+                    throw new IllegalArgumentException("Branch does not belong to employee's store.");
+                }
+            }
+
+            authorizationService.authorizeEmployeeCreate(
+                    employee.getStore(),
+                    dto.getRole(),
+                    branch
+            );
 
             if (dto.getRole() == Role.ROLE_STORE_MANAGER) {
                 employee.setBranch(null);
-            }
-
-            if (dto.getRole() == Role.ROLE_BRANCH_MANAGER
-                    || dto.getRole() == Role.ROLE_BRANCH_CASHIER) {
-
-                if (dto.getBranchId() == null) {
-                    throw new IllegalArgumentException(
-                            "Branch ID is required for this role.");
-                }
-
-                Branch branch = branchRepository.findById(dto.getBranchId())
-                        .orElseThrow(BranchNotFoundException::new);
-
-                if (!branch.getStore().getId()
-                        .equals(employee.getStore().getId())) {
-                    throw new IllegalArgumentException(
-                            "Branch does not belong to employee's store.");
-                }
-
+            } else {
                 employee.setBranch(branch);
 
-                if (dto.getRole() == Role.ROLE_BRANCH_MANAGER) {
+                if (branch !=null && dto.getRole() == Role.ROLE_BRANCH_MANAGER) {
                     branch.setManager(employee);
                     branchRepository.save(branch);
                 }

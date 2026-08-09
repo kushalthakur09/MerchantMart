@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +35,11 @@ public class InventoryServiceImpl implements InventoryService {
 
         Product product=productRepository.findById(inventoryDto.getProductId()).orElseThrow(ProductNotFoundException::new);
 
-        if (inventoryDto.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero.");
-        }
 
         if (!product.getStore().getId().equals(branch.getStore().getId())) {
             throw new IllegalArgumentException( "Product does not belong to the selected branch's store.");
         }
+
 
         Inventory existing = inventoryRepository
                 .findByProductIdAndBranchId(product.getId(), branch.getId())
@@ -54,6 +51,14 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         Inventory inventory= InventoryMapper.toEntity(inventoryDto,branch,product);
+
+        if (inventoryDto.getQuantity() != null) {
+            if (inventoryDto.getQuantity() <= 0) {
+                throw new IllegalArgumentException(
+                        "Quantity must be greater than zero.");
+            }
+            inventory.setQuantity(inventoryDto.getQuantity());
+        }
         return InventoryMapper.toDto(inventoryRepository.save(inventory));
     }
 

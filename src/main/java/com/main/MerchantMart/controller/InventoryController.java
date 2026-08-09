@@ -28,7 +28,7 @@ public class InventoryController {
         return  ResponseEntity.ok(inventoryService.getAllInventoryByBranchId(branchId));
     }
 
-    @GetMapping("product/{productId}/branch/{branchId}")
+    @GetMapping("/product/{productId}/branch/{branchId}")
     public ResponseEntity<InventoryDto> getInventoryByProductAndBranchId(@PathVariable("productId") Long productId ,@PathVariable("branchId") Long branchId){
         return  ResponseEntity.ok(inventoryService.getInventoryByProductIdAndBranchId(productId,branchId));
     }
@@ -40,7 +40,7 @@ public class InventoryController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<InventoryDto> update(@PathVariable("id") Long id,@Valid @RequestBody InventoryDto inventoryDto){
+    public ResponseEntity<InventoryDto> update(@PathVariable("id") Long id, @RequestBody InventoryDto inventoryDto){
         return  ResponseEntity.ok(inventoryService.updateInventory(id,inventoryDto));
     }
 

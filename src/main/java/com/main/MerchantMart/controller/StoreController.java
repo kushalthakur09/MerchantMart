@@ -1,6 +1,5 @@
 package com.main.MerchantMart.controller;
 
-import com.main.MerchantMart.domain.StoreStatus;
 import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.payload.dto.StoreDto;
 import com.main.MerchantMart.payload.response.ApiResponse;
@@ -25,8 +24,7 @@ public class StoreController {
 
     @PostMapping()
     public ResponseEntity<StoreDto> createStore(@RequestBody StoreDto storeDto){
-        User user=userService.getCurrentUser();
-        return ResponseEntity.status(HttpStatus.CREATED).body(storeService.createStore(storeDto,user));
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeService.createStore(storeDto));
     }
 
     @GetMapping("{id}")
@@ -60,9 +58,5 @@ public class StoreController {
         return ResponseEntity.ok(new ApiResponse(ApiConstants.STORE_DELETED_SUCCESSFULLY));
     }
 
-    @PatchMapping("/{id}/status")
-    public  ResponseEntity<StoreDto> changeStore(@PathVariable Long id, @RequestParam StoreStatus status){
-        return ResponseEntity.ok(storeService.changeStatus(id,status));
-    }
 
  }
