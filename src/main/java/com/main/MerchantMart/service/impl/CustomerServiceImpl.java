@@ -28,20 +28,16 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto updateCustomer(Long id, CustomerDto customerDto) {
-
         authorizationService.authorizeCustomerUpdate();
-
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(CustomerNotFoundException::new);
 
         if (customerDto.getFullName() != null) {
             customer.setFullName(customerDto.getFullName());
         }
-
         if (customerDto.getEmail() != null) {
             customer.setEmail(customerDto.getEmail());
         }
-
         if (customerDto.getPhoneNo() != null) {
             customer.setPhoneNo(customerDto.getPhoneNo());
         }
@@ -51,23 +47,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void deleteCustomer(Long id) {
-
-        authorizationService.authorizeCustomerDelete();
-
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(CustomerNotFoundException::new);
-
+        authorizationService.authorizeCustomerDelete();
         customerRepository.delete(customer);
     }
 
     @Override
     public CustomerDto getCustomer(Long id) {
-
         authorizationService.authorizeCustomerView();
-
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(CustomerNotFoundException::new);
-
         return CustomerMapper.toDto(customer);
     }
 

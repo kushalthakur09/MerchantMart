@@ -28,7 +28,7 @@ public class RefundController {
 
 
     @GetMapping
-    public ResponseEntity<List<RefundDto>> getAllRefund(){
+    public ResponseEntity<List<RefundDto>> getAllRefunds(){
         return ResponseEntity.ok(refundService.getAllRefunds());
     }
 

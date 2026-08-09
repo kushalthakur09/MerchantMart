@@ -21,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,16 +63,14 @@ public class OrderControllerTest {
     public void  setUp(){
         orderDto=OrderDto.builder()
                 .id(1L)
-                .totalAmount(500.0)
-                .brandId(1L)
+                .totalAmount(BigDecimal.valueOf(500.0))
                 .customerId(1L)
                 .paymentType(PaymentType.CASH)
                 .items(List.of())
                 .build();
         OrderDto temp1=OrderDto.builder()
                 .id(1L)
-                .totalAmount(500.0)
-                .brandId(1L)
+                .totalAmount(BigDecimal.valueOf(500.0))
                 .customerId(1L)
                 .paymentType(PaymentType.CASH)
                 .items(List.of())
@@ -79,8 +78,7 @@ public class OrderControllerTest {
 
         OrderDto temp2=OrderDto.builder()
                 .id(1L)
-                .totalAmount(500.0)
-                .brandId(1L)
+                .totalAmount(BigDecimal.valueOf(500.0))
                 .customerId(1L)
                 .paymentType(PaymentType.CASH)
                 .items(List.of())

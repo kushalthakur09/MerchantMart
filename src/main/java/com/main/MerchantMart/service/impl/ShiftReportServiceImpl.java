@@ -3,7 +3,6 @@ package com.main.MerchantMart.service.impl;
 import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.entity.*;
 import com.main.MerchantMart.exception.conflict.ShiftAlreadyStartedException;
-import com.main.MerchantMart.exception.forbidden.AccessDeniedException;
 import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.exception.notfound.ShiftNotFoundException;
 import com.main.MerchantMart.exception.notfound.UserNotFoundException;
@@ -12,7 +11,6 @@ import com.main.MerchantMart.repository.*;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.ShiftReportService;
 import com.main.MerchantMart.service.UserService;
-import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.utility.function.Utility;
 import com.main.MerchantMart.utility.mapper.ShiftReportMapper;
 import lombok.RequiredArgsConstructor;
@@ -69,18 +67,13 @@ public class ShiftReportServiceImpl implements ShiftReportService {
     }
 
     @Override
-    public ShiftReportDto endShift(Long shiftReportId, LocalDateTime shiftEnd) {
-
+    public ShiftReportDto endShift(LocalDateTime shiftEnd) {
         User cashier = userService.getCurrentUser();
-
-        ShiftReport shiftReport = shiftReportRepository.findById(shiftReportId)
+        ShiftReport shiftReport = shiftReportRepository
+                .findByCashierAndShiftEndIsNull(cashier)
                 .orElseThrow(ShiftNotFoundException::new);
 
         authorizationService.authorizeShiftEnd(shiftReport);
-
-        if (!shiftReport.getCashier().getId().equals(cashier.getId())) {
-            throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
-        }
 
         if (shiftReport.getShiftEnd() != null) {
             throw new IllegalStateException("Shift is already closed.");
@@ -91,15 +84,11 @@ public class ShiftReportServiceImpl implements ShiftReportService {
         }
 
         ShiftReport report = generateShiftReportForCurrentCashier(
-                cashier,
+                shiftReport,
                 shiftEnd
         );
-
         report.setShiftEnd(shiftEnd);
-
-        return ShiftReportMapper.toDto(
-                shiftReportRepository.save(report)
-        );
+        return ShiftReportMapper.toDto(shiftReportRepository.save(report));
     }
 
     @Override
@@ -151,17 +140,13 @@ public class ShiftReportServiceImpl implements ShiftReportService {
 
     @Override
     public ShiftReportDto getCurrentShiftProgress() {
-
         User cashier = userService.getCurrentUser();
-
         authorizationService.authorizeShiftViewOwn();
-
-        shiftReportRepository
-                .findByCashierAndShiftEndIsNull(cashier)
+        ShiftReport shiftReport=shiftReportRepository.findByCashierAndShiftEndIsNull(cashier)
                 .orElseThrow(ShiftNotFoundException::new);
 
         ShiftReport progress = generateShiftReportForCurrentCashier(
-                cashier,
+                shiftReport,
                 LocalDateTime.now()
         );
 
@@ -258,15 +243,9 @@ public class ShiftReportServiceImpl implements ShiftReportService {
                 .collect(Collectors.toList());
     }
 
-    private ShiftReport generateShiftReportForCurrentCashier(
-            User cashier,
+    private ShiftReport generateShiftReportForCurrentCashier(ShiftReport shiftReport,
             LocalDateTime endDate) {
-
-        ShiftReport shiftReport =
-                shiftReportRepository
-                        .findTopByCashierAndShiftEndIsNullOrderByShiftStartDesc(cashier)
-                        .orElseThrow(ShiftNotFoundException::new);
-
+        User cashier = shiftReport.getCashier();
         List<Refund> refunds =
                 refundRepository.findByCashierIdAndCreatedDateBetween(
                         cashier.getId(),

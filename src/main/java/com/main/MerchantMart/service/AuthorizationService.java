@@ -12,6 +12,8 @@ public interface AuthorizationService {
     void authorizeStoreDelete(Store store);
     void authorizeStoreView(Store store);
     void authorizeStoreViewAll();
+    void authorizeStoreAccess(Store store);
+
     // Branch
     void authorizeBranchCreate(Store store);
     void authorizeBranchUpdate(Branch branch);
@@ -29,6 +31,7 @@ public interface AuthorizationService {
     void authorizeProductUpdate(Product product);
     void authorizeProductDelete(Product product);
     void authorizeProductView(Store product);
+    void authorizeProductSearch(Store store);
 
     //Order
     void authorizeOrderCreate(Branch branch);
@@ -43,7 +46,7 @@ public interface AuthorizationService {
     void authorizeInventoryView(Branch branch);
 
     // Employee (later)
-    void authorizeEmployeeCreate(Role roleToCreate);
+    void authorizeEmployeeCreate(Store store, Role roleToCreate,Branch branch);
     void authorizeEmployeeUpdate(User employee);
     void authorizeEmployeeDelete(User employee);
     void authorizeEmployeeView(User employee);
@@ -71,4 +74,12 @@ public interface AuthorizationService {
     void authorizeShiftViewByBranch(Branch branch);
     void authorizeShiftReportView(ShiftReport shiftReport);
     void authorizeShiftViewAll();
+
+    // customer
+    void authorizeCustomerAccess();
+
+    // super admin store
+    void authorizeStoreStatusChange();
+
 }
+

@@ -9,12 +9,11 @@ import java.util.List;
 
 public interface StoreService {
 
-    StoreDto createStore(StoreDto storeDto, User user);
+    StoreDto createStore(StoreDto storeDto);
     StoreDto getStoreById(Long id);
     List<StoreDto> getAllStores();
     Store getStoreByAdmin();
     StoreDto updateStore(Long id,StoreDto storeDto);
     void deleteStore(Long id);
     StoreDto getStoreByEmployee();
-    StoreDto changeStatus(Long id, StoreStatus status);
 }
