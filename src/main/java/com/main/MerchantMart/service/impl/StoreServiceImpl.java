@@ -28,8 +28,14 @@ public class StoreServiceImpl implements StoreService {
     public StoreDto createStore(StoreDto storeDto) {
         User storeAdmin = userService.getCurrentUser();
         authorizationService.authorizeStoreCreate();
+
+        if (storeRepository.existsByStoreAdmin(storeAdmin)) {
+            throw new IllegalStateException("Store admin can only have one store.");
+        }
+
         Store store = StoreMapper.toEntity(storeDto, storeAdmin);
         store.setStatus(StoreStatus.PENDING);
+
         return StoreMapper.toDto(storeRepository.save(store));
     }
 

@@ -98,6 +98,24 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public UserDto createStoreAdmin(UserDto userDto) {
+        authorizationService.authorizeStoreAdminCreate();
+        if (employeeRepository.existsByEmail(userDto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists.");
+        }
+
+        User user = UserMapper.toEntity(userDto);
+
+        user.setRole(Role.ROLE_STORE_ADMIN);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setStore(null);
+        user.setBranch(null);
+        user.setProvider(AuthConstants.PROVIDER_LOCAL);
+
+        return UserMapper.toDto(employeeRepository.save(user));
+    }
+
+    @Override
     public UserDto updateEmployee(Long id, UserDto dto) {
 
         User employee = employeeRepository.findById(id)

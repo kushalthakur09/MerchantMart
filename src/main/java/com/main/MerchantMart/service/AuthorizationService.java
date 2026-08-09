@@ -80,6 +80,6 @@ public interface AuthorizationService {
 
     // super admin store
     void authorizeStoreStatusChange();
-
+    void authorizeStoreAdminCreate();
 }
 
