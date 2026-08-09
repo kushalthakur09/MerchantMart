@@ -342,33 +342,17 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void authorizeEmployeeUpdate(User employee) {
-
         authorizeStoreAccess(employee.getStore());
-
         User user = currentUser();
-
+        if (isAdmin(user)) {
+            return;
+        }
         if (isStoreAdmin(user)
                 && belongsToStore(user, employee.getStore())
                 && employee.getRole() != Role.ROLE_ADMIN) {
             return;
         }
-
-        if (isStoreManager(user)
-                && belongsToStore(user, employee.getStore())
-                && (isBranchManager(employee)
-                || isBranchCashier(employee))) {
-            return;
-        }
-
-        if (isBranchManager(user)
-                && employee.getBranch() != null
-                && belongsToBranch(user, employee.getBranch())
-                && isBranchCashier(employee)) {
-            return;
-        }
-
-        throw new AccessDeniedException(
-                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
@@ -665,6 +649,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return;
         }
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_STORE);
+    }
+
+    @Override
+    public void authorizeStoreAdminCreate() {
+        if (!isAdmin(currentUser())) {
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+        }
     }
     // ===========================
     // PRIVATE HELPERS

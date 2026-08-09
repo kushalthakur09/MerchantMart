@@ -29,6 +29,13 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.createBranchEmployee(employeeDto,branchId));
     }
 
+    @PostMapping("/store-admin")
+    public ResponseEntity<UserDto> createStoreAdmin(@Valid @RequestBody UserDto employeeDto) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(employeeService.createStoreAdmin(employeeDto));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateEmployee(@PathVariable("id") Long id, @RequestBody UserDto employeeDto){
         return ResponseEntity.ok(employeeService.updateEmployee(id,employeeDto));

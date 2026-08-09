@@ -2,6 +2,7 @@ package com.main.MerchantMart.repository;
 
 import com.main.MerchantMart.domain.StoreStatus;
 import com.main.MerchantMart.entity.Store;
+import com.main.MerchantMart.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +16,7 @@ import java.util.Optional;
 public interface StoreRepository extends JpaRepository<Store,Long> {
     Optional<Store> findByStoreAdminId(Long id);
     long countByStatus(StoreStatus status);
-
+    boolean existsByStoreAdmin(User storeAdmin);
     @Query("""
         SELECT DATE(s.createdDate), COUNT(s)
         FROM Store s
