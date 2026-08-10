@@ -667,9 +667,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         if (isAdmin(user)) {
             return;
         }
-        if (belongsToStore(user, store)
-                && (isStoreAdmin(user)
-                || (allowStoreManager && isStoreManager(user)))) {
+        if (belongsToStore(user, store) && (isStoreAdmin(user) || (allowStoreManager && isStoreManager(user)))) {
             return;
         }
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_STORE);

@@ -7,12 +7,14 @@ import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
 import com.main.MerchantMart.payload.dto.StoreDto;
 import com.main.MerchantMart.repository.StoreRepository;
+import com.main.MerchantMart.repository.UserRepository;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.StoreService;
 import com.main.MerchantMart.service.UserService;
 import com.main.MerchantMart.utility.mapper.StoreMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,7 +25,9 @@ public class StoreServiceImpl implements StoreService {
     private final StoreRepository storeRepository;
     private final UserService userService;
     private final AuthorizationService authorizationService;
+    private final UserRepository userRepository;
 
+    @Transactional
     @Override
     public StoreDto createStore(StoreDto storeDto) {
         User storeAdmin = userService.getCurrentUser();
@@ -35,8 +39,11 @@ public class StoreServiceImpl implements StoreService {
 
         Store store = StoreMapper.toEntity(storeDto, storeAdmin);
         store.setStatus(StoreStatus.PENDING);
+        storeAdmin.setStore(store);
 
-        return StoreMapper.toDto(storeRepository.save(store));
+        Store savedStore = storeRepository.save(store);
+        userRepository.save(storeAdmin);
+        return StoreMapper.toDto(savedStore);
     }
 
     @Override
