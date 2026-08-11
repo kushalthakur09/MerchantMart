@@ -344,6 +344,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     public void authorizeEmployeeUpdate(User employee) {
         authorizeStoreAccess(employee.getStore());
         User user = currentUser();
+
+        if (user.getId().equals(employee.getId())) {
+            throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+        }
+
         if (isAdmin(user)) {
             return;
         }
@@ -352,6 +357,43 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 && employee.getRole() != Role.ROLE_ADMIN) {
             return;
         }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+    }
+
+    @Override
+    public void authorizeEmployeeRoleUpdate(
+            Store store,
+            Role newRole,
+            Branch branch) {
+
+        authorizeStoreAccess(store);
+
+        User user = currentUser();
+
+        if (isStoreAdmin(user)
+                && belongsToStore(user, store)
+                && (newRole == Role.ROLE_STORE_MANAGER
+                || newRole == Role.ROLE_BRANCH_MANAGER
+                || newRole == Role.ROLE_BRANCH_CASHIER)) {
+
+            return;
+        }
+
+        if (isStoreManager(user)
+                && belongsToStore(user, store)
+                && (newRole == Role.ROLE_BRANCH_MANAGER
+                || newRole == Role.ROLE_BRANCH_CASHIER)) {
+
+            return;
+        }
+
+        if (isBranchManager(user)
+                && newRole == Role.ROLE_BRANCH_CASHIER
+                && branch != null
+                && belongsToBranch(user, branch)) {
+            return;
+        }
+
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 

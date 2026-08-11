@@ -7,6 +7,7 @@ import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.exception.notfound.EmployeeNotFoundException;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
+import com.main.MerchantMart.payload.dto.EmployeeUpdateDto;
 import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.repository.BranchRepository;
 import com.main.MerchantMart.repository.StoreRepository;
@@ -19,6 +20,7 @@ import com.main.MerchantMart.utility.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final AuthorizationService authorizationService;
     private final UserService userService;
 
+    @Transactional
     @Override
     public UserDto createStoreEmployee(UserDto employee, Long storeId) {
 
@@ -58,6 +61,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             if (!branch.getStore().getId().equals(store.getId())) {
                 throw new IllegalArgumentException("Branch does not belong to the selected store.");
+            }
+            if (branch.getManager() != null) {
+                throw new IllegalArgumentException("This branch already has a manager.");
             }
         }
 
@@ -115,65 +121,69 @@ public class EmployeeServiceImpl implements EmployeeService {
         return UserMapper.toDto(employeeRepository.save(user));
     }
 
+    @Transactional
     @Override
-    public UserDto updateEmployee(Long id, UserDto dto) {
+    public UserDto updateEmployee(Long id, EmployeeUpdateDto dto) {
 
         User employee = employeeRepository.findById(id)
                 .orElseThrow(EmployeeNotFoundException::new);
 
+        // Employee cannot update/manage themselves
         authorizationService.authorizeEmployeeUpdate(employee);
 
-        if (dto.getFullUserName() != null) {
-            employee.setFullUserName(dto.getFullUserName());
-        }
+        Role newRole = dto.getRole();
+        Branch newBranch = null;
 
-        if (dto.getEmail() != null) {
-            employee.setEmail(dto.getEmail());
-        }
+        if (newRole == Role.ROLE_BRANCH_MANAGER || newRole == Role.ROLE_BRANCH_CASHIER) {
 
-        if (dto.getPassword() != null) {
-            employee.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-
-        if (dto.getRole() != null
-                && dto.getRole() != employee.getRole()) {
-
-            Branch branch = null;
-
-            if (dto.getRole() == Role.ROLE_BRANCH_MANAGER  || dto.getRole() == Role.ROLE_BRANCH_CASHIER) {
-
-                if (dto.getBranchId() == null) {
-                    throw new IllegalArgumentException("Branch ID is required for this role.");
-                }
-
-                branch = branchRepository.findById(dto.getBranchId())
-                        .orElseThrow(BranchNotFoundException::new);
-
-                if (!branch.getStore().getId().equals(employee.getStore().getId())) {
-                    throw new IllegalArgumentException("Branch does not belong to employee's store.");
-                }
+            if (dto.getBranchId() == null) {
+                throw new IllegalArgumentException("Branch ID is required for this role.");
             }
 
-            authorizationService.authorizeEmployeeCreate(
-                    employee.getStore(),
-                    dto.getRole(),
-                    branch
-            );
+            newBranch = branchRepository.findById(dto.getBranchId())
+                    .orElseThrow(BranchNotFoundException::new);
 
-            if (dto.getRole() == Role.ROLE_STORE_MANAGER) {
-                employee.setBranch(null);
-            } else {
-                employee.setBranch(branch);
-
-                if (branch !=null && dto.getRole() == Role.ROLE_BRANCH_MANAGER) {
-                    branch.setManager(employee);
-                    branchRepository.save(branch);
-                }
+            if (!newBranch.getStore().getId().equals(employee.getStore().getId())) {
+                throw new IllegalArgumentException("Branch does not belong to employee's store.");
             }
 
-            employee.setRole(dto.getRole());
+            if (newRole == Role.ROLE_BRANCH_MANAGER
+                    && newBranch.getManager() != null
+                    && !newBranch.getManager().getId()
+                    .equals(employee.getId())) {
+
+                throw new IllegalArgumentException("This branch already has a manager.");
+            }
         }
 
+        authorizationService.authorizeEmployeeRoleUpdate(employee.getStore(),newRole,newBranch);
+
+        if (employee.getRole() == Role.ROLE_BRANCH_MANAGER
+                && employee.getBranch() != null
+                && (newRole != Role.ROLE_BRANCH_MANAGER
+                || !employee.getBranch().getId()
+                .equals(newBranch.getId()))) {
+
+            Branch oldBranch = employee.getBranch();
+
+            if (oldBranch.getManager() != null && oldBranch.getManager().getId().equals(employee.getId())) {
+                oldBranch.setManager(null);
+                branchRepository.save(oldBranch);
+            }
+        }
+
+        if (newRole == Role.ROLE_STORE_MANAGER) {
+            employee.setRole(Role.ROLE_STORE_MANAGER);
+            employee.setBranch(null);
+
+        } else {
+            employee.setRole(newRole);
+            employee.setBranch(newBranch);
+            if (newRole == Role.ROLE_BRANCH_MANAGER) {
+                newBranch.setManager(employee);
+                branchRepository.save(newBranch);
+            }
+        }
         return UserMapper.toDto(employeeRepository.save(employee));
     }
 
@@ -206,13 +216,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         authorizationService.authorizeEmployeeStoreView(store);
 
+        User currentUser = userService.getCurrentUser();
+
         return employeeRepository.findByStore(store)
                 .stream()
+                .filter(employee -> !employee.getId().equals(currentUser.getId()))
                 .filter(employee -> role == null || employee.getRole() == role)
                 .map(UserMapper::toDto)
                 .toList();
     }
-
 
     @Override
     public List<UserDto> findBranchEmployees(Long branchId, Role role) {
