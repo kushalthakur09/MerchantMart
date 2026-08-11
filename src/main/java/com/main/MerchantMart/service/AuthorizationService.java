@@ -48,6 +48,10 @@ public interface AuthorizationService {
     // Employee (later)
     void authorizeEmployeeCreate(Store store, Role roleToCreate,Branch branch);
     void authorizeEmployeeUpdate(User employee);
+    void authorizeEmployeeRoleUpdate(
+            Store store,
+            Role newRole,
+            Branch branch);
     void authorizeEmployeeDelete(User employee);
     void authorizeEmployeeView(User employee);
     void authorizeEmployeeStoreView(Store store);

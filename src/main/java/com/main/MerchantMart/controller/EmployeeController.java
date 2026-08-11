@@ -1,6 +1,7 @@
 package com.main.MerchantMart.controller;
 
 import com.main.MerchantMart.domain.Role;
+import com.main.MerchantMart.payload.dto.EmployeeUpdateDto;
 import com.main.MerchantMart.payload.dto.UserDto;
 import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.EmployeeService;
@@ -37,7 +38,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateEmployee(@PathVariable("id") Long id, @RequestBody UserDto employeeDto){
+    public ResponseEntity<UserDto> updateEmployee(@PathVariable("id") Long id, @RequestBody EmployeeUpdateDto employeeDto){
         return ResponseEntity.ok(employeeService.updateEmployee(id,employeeDto));
     }
 
