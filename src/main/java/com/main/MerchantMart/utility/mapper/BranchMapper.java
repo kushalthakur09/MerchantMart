@@ -15,7 +15,7 @@ public class BranchMapper {
                         .phoneNo(branch.getPhoneNo())
                         .openTime(branch.getOpenTime())
                         .closeTime(branch.getCloseTime())
-//                        .manager(UserMapper.toDto(branch.getManager()))
+                        .manager(branch.getManager() != null   ? UserMapper.toDto(branch.getManager()): null)
                         .storeId(branch.getStore() != null ? branch.getStore().getId() : null)
                         .workingDays(branch.getWorkingDays())
                         .build();
