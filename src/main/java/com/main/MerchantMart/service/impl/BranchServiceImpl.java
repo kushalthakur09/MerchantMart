@@ -1,15 +1,20 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.Branch;
 import com.main.MerchantMart.entity.Store;
+import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
+import com.main.MerchantMart.exception.notfound.EmployeeNotFoundException;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
 import com.main.MerchantMart.payload.dto.BranchDto;
 import com.main.MerchantMart.repository.BranchRepository;
 import com.main.MerchantMart.repository.StoreRepository;
+import com.main.MerchantMart.repository.UserRepository;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.BranchService;
 import com.main.MerchantMart.utility.mapper.BranchMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +27,42 @@ public class BranchServiceImpl implements BranchService {
     private final BranchRepository branchRepository;
     private final StoreRepository storeRepository;
     private final AuthorizationService authorizationService;
+    private final UserRepository userRepository;
 
-
+    @Transactional
     @Override
     public BranchDto createBranch(BranchDto branchDto) {
         Store store = storeRepository.findById(branchDto.getStoreId())
                 .orElseThrow(StoreNotFoundException::new);
+
         authorizationService.authorizeBranchCreate(store);
 
-        Branch branch=BranchMapper.toEntity(branchDto,store);
-        Branch saved =branchRepository.save(branch);
-        return BranchMapper.toDto(saved);
+        Branch branch = BranchMapper.toEntity(branchDto, store);
+
+        if (branchDto.getManager() != null && branchDto.getManager().getId() != null) {
+
+            User manager = userRepository.findById(branchDto.getManager().getId())
+                    .orElseThrow(EmployeeNotFoundException::new);
+
+            if (manager.getRole() != Role.ROLE_BRANCH_MANAGER) {
+                throw new IllegalArgumentException("Selected employee must be a Branch Manager.");
+            }
+
+            if (manager.getStore() == null || !manager.getStore().getId().equals(store.getId())) {
+                throw new IllegalArgumentException("Branch Manager does not belong to this store.");
+            }
+
+            branch.setManager(manager);
+
+            Branch savedBranch = branchRepository.save(branch);
+
+            manager.setBranch(savedBranch);
+            userRepository.save(manager);
+
+            return BranchMapper.toDto(savedBranch);
+        }
+
+        return BranchMapper.toDto(branchRepository.save(branch));
     }
 
     @Override

@@ -84,7 +84,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     public void authorizeBranchCreate(Store store) {
         authorizeStoreAccess(store);
         User user = currentUser();
-        if (isStoreAdmin(user) && belongsToStore(user, store)) {
+        if (isStoreAdmin(user) && belongsToStore(user, store) && store.getStatus() == StoreStatus.ACTIVE) {
             return;
         }
         throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_BRANCH);
