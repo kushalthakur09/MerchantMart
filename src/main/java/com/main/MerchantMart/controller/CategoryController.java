@@ -4,6 +4,7 @@ import com.main.MerchantMart.payload.dto.CategoryDto;
 import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.CategoryService;
 import com.main.MerchantMart.utility.contants.ApiConstants;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class CategoryController {
     private  final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<CategoryDto> create(@RequestBody CategoryDto categoryDto){
+    public ResponseEntity<CategoryDto> create(@Valid  @RequestBody CategoryDto categoryDto){
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(categoryDto));
     }
 
