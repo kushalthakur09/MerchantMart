@@ -9,4 +9,11 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category,Long> {
     List<Category> findByStoreId(Long storeId);
+    boolean existsByStoreIdAndNameIgnoreCase(Long storeId, String name);
+
+    boolean existsByStoreIdAndNameIgnoreCaseAndIdNot(
+            Long storeId,
+            String name,
+            Long id
+    );
 }

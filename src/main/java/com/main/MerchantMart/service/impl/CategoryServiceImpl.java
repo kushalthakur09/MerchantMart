@@ -13,6 +13,7 @@ import com.main.MerchantMart.service.UserService;
 import com.main.MerchantMart.utility.mapper.CategoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,25 +24,52 @@ public class CategoryServiceImpl implements CategoryService {
     private final StoreRepository storeRepository;
     private final AuthorizationService authorizationService;
 
+    @Transactional
     @Override
     public CategoryDto createCategory(CategoryDto categoryDto) {
+
         Store store = storeRepository.findById(categoryDto.getStoreId())
                 .orElseThrow(StoreNotFoundException::new);
 
         authorizationService.authorizeCategoryCreate(store);
 
+        if (categoryRepository.existsByStoreIdAndNameIgnoreCase(
+                store.getId(),
+                categoryDto.getName().trim())) {
+
+            throw new IllegalArgumentException("Category already exists in this store.");
+        }
+
         Category category = Category.builder()
-                .name(categoryDto.getName())
+                .name(categoryDto.getName().trim())
                 .store(store)
                 .build();
+
         return CategoryMapper.toDto(categoryRepository.save(category));
     }
 
+    @Transactional
     @Override
-    public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
-        Category category = categoryRepository.findById(id).orElseThrow(CategoryNotFoundException::new);
+    public CategoryDto updateCategory(
+            Long id,
+            CategoryDto categoryDto) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(CategoryNotFoundException::new);
+
         authorizationService.authorizeCategoryUpdate(category);
-        category.setName(categoryDto.getName());
+
+        String name = categoryDto.getName().trim();
+
+        if (categoryRepository.existsByStoreIdAndNameIgnoreCaseAndIdNot(
+                category.getStore().getId(),
+                name,
+                id)) {
+            throw new IllegalArgumentException("Category already exists in this store.");
+        }
+
+        category.setName(name);
+
         return CategoryMapper.toDto(categoryRepository.save(category));
     }
 
