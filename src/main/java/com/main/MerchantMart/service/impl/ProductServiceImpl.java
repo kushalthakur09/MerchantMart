@@ -82,14 +82,13 @@ public class ProductServiceImpl implements ProductService {
             product.setImage(productDto.getImage());
         }
 
-        if (productDto.getMrp() != null) {
-            product.setMrp(productDto.getMrp());
-        }
-
         BigDecimal mrp = productDto.getMrp() != null
                 ? productDto.getMrp()
                 : product.getMrp();
 
+        if (productDto.getMrp() != null) {
+            product.setMrp(mrp);
+        }
         BigDecimal sellingPrice = productDto.getSellingPrice() != null
                 ? productDto.getSellingPrice()
                 : product.getSellingPrice();
@@ -97,6 +96,11 @@ public class ProductServiceImpl implements ProductService {
         if (sellingPrice.compareTo(mrp) > 0) {
             throw new IllegalArgumentException("Selling price cannot be greater than MRP.");
         }
+
+        if (productDto.getSellingPrice() != null) {
+            product.setSellingPrice(sellingPrice);
+        }
+
 
         if (productDto.getBrand() != null) {
             product.setBrand(productDto.getBrand());
