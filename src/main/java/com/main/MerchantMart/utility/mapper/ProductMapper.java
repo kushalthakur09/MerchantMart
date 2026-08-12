@@ -31,6 +31,7 @@ public class ProductMapper {
                 .brand(productDto.getBrand())
                 .mrp(productDto.getMrp())
                 .sellingPrice(productDto.getSellingPrice())
+                .image(productDto.getImage())
                 .store(store)
                 .category(category)
                 .build();
