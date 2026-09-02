@@ -44,4 +44,9 @@ public class StoreAnalyticsController {
     public ResponseEntity<List<BranchSalesDto>> getBranchSales() {
         return ResponseEntity.ok(storeAnalyticsService.getBranchSales());
     }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<List<AlertMessageDto>> getAlerts() {
+        return ResponseEntity.ok(storeAnalyticsService.getAlerts());
+    }
 }

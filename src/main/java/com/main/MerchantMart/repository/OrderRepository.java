@@ -118,34 +118,34 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                       LocalDateTime toDate);
 
     @Query("""
-            SELECT FUNCTION('YEAR', o.createdDate),
-                   FUNCTION('WEEK', o.createdDate),
-                   SUM(o.totalAmount)
-            FROM Order o
-            WHERE o.branch.store.id = :storeId
-            AND o.createdDate BETWEEN :fromDate AND :toDate
-            GROUP BY FUNCTION('YEAR', o.createdDate),
-                     FUNCTION('WEEK', o.createdDate)
-            ORDER BY FUNCTION('YEAR', o.createdDate),
-                     FUNCTION('WEEK', o.createdDate)
-            """)
+        SELECT FUNCTION('DATE_PART', 'year', o.createdDate),
+               FUNCTION('DATE_PART', 'week', o.createdDate),
+               SUM(o.totalAmount)
+        FROM Order o
+        WHERE o.branch.store.id = :storeId
+        AND o.createdDate BETWEEN :fromDate AND :toDate
+        GROUP BY FUNCTION('DATE_PART', 'year', o.createdDate),
+                 FUNCTION('DATE_PART', 'week', o.createdDate)
+        ORDER BY FUNCTION('DATE_PART', 'year', o.createdDate),
+                 FUNCTION('DATE_PART', 'week', o.createdDate)
+        """)
     List<Object[]> getWeeklySalesTrend(Long storeId,
                                        LocalDateTime fromDate,
                                        LocalDateTime toDate);
 
 
     @Query("""
-            SELECT FUNCTION('YEAR', o.createdDate),
-                   FUNCTION('MONTH', o.createdDate),
-                   SUM(o.totalAmount)
-            FROM Order o
-            WHERE o.branch.store.id = :storeId
-            AND o.createdDate BETWEEN :fromDate AND :toDate
-            GROUP BY FUNCTION('YEAR', o.createdDate),
-                     FUNCTION('MONTH', o.createdDate)
-            ORDER BY FUNCTION('YEAR', o.createdDate),
-                     FUNCTION('MONTH', o.createdDate)
-            """)
+        SELECT FUNCTION('DATE_PART', 'year', o.createdDate),
+               FUNCTION('DATE_PART', 'month', o.createdDate),
+               SUM(o.totalAmount)
+        FROM Order o
+        WHERE o.branch.store.id = :storeId
+        AND o.createdDate BETWEEN :fromDate AND :toDate
+        GROUP BY FUNCTION('DATE_PART', 'year', o.createdDate),
+                 FUNCTION('DATE_PART', 'month', o.createdDate)
+        ORDER BY FUNCTION('DATE_PART', 'year', o.createdDate),
+                 FUNCTION('DATE_PART', 'month', o.createdDate)
+        """)
     List<Object[]> getMonthlySalesTrend(Long storeId,
                                         LocalDateTime fromDate,
                                         LocalDateTime toDate);
