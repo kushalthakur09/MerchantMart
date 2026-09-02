@@ -5,12 +5,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Utility {
-    public static <E,D> List<D> mapListToDto(List<E> entityList, Function<E,D> mapper) {
-        if(entityList == null || entityList.isEmpty()){
-            return  null;
+    public static <E, D> List<D> mapListToDto(List<E> entityList, Function<E, D> mapper) {
+        if (entityList == null || entityList.isEmpty()) {
+            return null;
         }
 
-        return  entityList.stream()
+        return entityList.stream()
                 .map(mapper)
                 .collect(Collectors.toList());
     }
