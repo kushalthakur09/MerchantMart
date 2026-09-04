@@ -27,40 +27,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductRepository productRepository;
     private final AuthorizationService authorizationService;
 
-    @Override
-    public InventoryDto createInventory(InventoryDto inventoryDto) {
-
-        Branch branch=branchRepository.findById(inventoryDto.getBranchId()).orElseThrow(BranchNotFoundException::new);
-        authorizationService.authorizeInventoryCreate(branch);
-
-        Product product=productRepository.findById(inventoryDto.getProductId()).orElseThrow(ProductNotFoundException::new);
-
-
-        if (!product.getStore().getId().equals(branch.getStore().getId())) {
-            throw new IllegalArgumentException( "Product does not belong to the selected branch's store.");
-        }
-
-
-        Inventory existing = inventoryRepository
-                .findByProductIdAndBranchId(product.getId(), branch.getId())
-                .orElse(null);
-
-        if (existing != null) {
-            existing.setQuantity(existing.getQuantity() + inventoryDto.getQuantity());
-            return InventoryMapper.toDto(inventoryRepository.save(existing));
-        }
-
-        Inventory inventory= InventoryMapper.toEntity(inventoryDto,branch,product);
-
-        if (inventoryDto.getQuantity() != null) {
-            if (inventoryDto.getQuantity() <= 0) {
-                throw new IllegalArgumentException(
-                        "Quantity must be greater than zero.");
-            }
-            inventory.setQuantity(inventoryDto.getQuantity());
-        }
-        return InventoryMapper.toDto(inventoryRepository.save(inventory));
-    }
+s
 
     @Override
     public InventoryDto updateInventory(Long id,InventoryDto inventoryDto) {
