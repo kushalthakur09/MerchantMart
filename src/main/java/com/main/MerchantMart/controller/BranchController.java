@@ -39,9 +39,15 @@ public class BranchController {
         return  ResponseEntity.ok(branchService.updateBranch(id,branchDto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id){
-        branchService.deleteBranch(id);
-        return  ResponseEntity.ok(new ApiResponse(ApiConstants.BRANCH_DELETED_SUCCESSFULLY));
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse> deactivate(@PathVariable("id") Long id) {
+        branchService.deactivateBranch(id);
+        return ResponseEntity.ok(new ApiResponse("Branch deactivated successfully."));
+    }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse> activate(@PathVariable("id") Long id) {
+        branchService.activateBranch(id);
+        return ResponseEntity.ok(new ApiResponse("Branch activated successfully."));
     }
 }

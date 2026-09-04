@@ -1,5 +1,6 @@
 package com.main.MerchantMart.utility.mapper;
 
+import com.main.MerchantMart.domain.BranchStatus;
 import com.main.MerchantMart.entity.Branch;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.payload.dto.BranchDto;
@@ -13,8 +14,10 @@ public class BranchMapper {
                         .name(branch.getName())
                         .address(branch.getAddress())
                         .phoneNo(branch.getPhoneNo())
+                        .email(branch.getEmail())
                         .openTime(branch.getOpenTime())
                         .closeTime(branch.getCloseTime())
+                        .status(branch.getStatus())
                         .manager(branch.getManager() != null   ? UserMapper.toDto(branch.getManager()): null)
                         .storeId(branch.getStore() != null ? branch.getStore().getId() : null)
                         .workingDays(branch.getWorkingDays())
@@ -29,6 +32,7 @@ public class BranchMapper {
                 .store(store)
                 .openTime(branchDto.getOpenTime())
                 .closeTime(branchDto.getCloseTime())
+                .status(BranchStatus.ACTIVE)
                 .workingDays(branchDto.getWorkingDays())
                 .build();
     }

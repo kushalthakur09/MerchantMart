@@ -1,5 +1,6 @@
 package com.main.MerchantMart.entity;
 
+import com.main.MerchantMart.domain.BranchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,6 +40,11 @@ public class Branch {
     private LocalTime openTime;
 
     private LocalTime closeTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private BranchStatus status = BranchStatus.ACTIVE;
 
     @CreationTimestamp
     @Column(updatable = false)

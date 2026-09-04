@@ -1,5 +1,6 @@
 package com.main.MerchantMart.payload.dto;
 
+import com.main.MerchantMart.domain.BranchStatus;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,8 @@ public class BranchDto {
     private LocalTime openTime;
 
     private LocalTime closeTime;
+
+    private BranchStatus status;
 
     private StoreDto store;
 

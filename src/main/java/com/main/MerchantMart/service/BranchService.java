@@ -9,7 +9,8 @@ public interface BranchService {
 
     BranchDto createBranch(BranchDto branchDto);
     BranchDto updateBranch(Long id,BranchDto branchDto);
-    void deleteBranch(Long id);
+    void deactivateBranch(Long id);
+    void activateBranch(Long id);
     List<BranchDto> getBranchesByStoreId(Long storeId);
     BranchDto getBranchById(Long id);
 }

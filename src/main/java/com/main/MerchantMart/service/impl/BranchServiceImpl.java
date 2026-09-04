@@ -1,5 +1,6 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.BranchStatus;
 import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.Branch;
 import com.main.MerchantMart.entity.Store;
@@ -48,8 +49,17 @@ public class BranchServiceImpl implements BranchService {
                 throw new IllegalArgumentException("Selected employee must be a Branch Manager.");
             }
 
-            if (manager.getStore() == null || !manager.getStore().getId().equals(store.getId())) {
-                throw new IllegalArgumentException("Branch Manager does not belong to this store.");
+            if (manager.getBranch() != null) {
+                throw new IllegalArgumentException(
+                        "This Branch Manager is already assigned to a branch."
+                );
+            }
+
+            if (manager.getStore() == null ||
+                    !manager.getStore().getId().equals(store.getId())) {
+                throw new IllegalArgumentException(
+                        "Branch Manager does not belong to this store."
+                );
             }
 
             branch.setManager(manager);
@@ -70,6 +80,7 @@ public class BranchServiceImpl implements BranchService {
 
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(BranchNotFoundException::new);
+
         authorizationService.authorizeBranchUpdate(branch);
 
         if (branchDto.getName() != null) {
@@ -104,11 +115,25 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    public void deleteBranch(Long id) {
-        Branch branch=branchRepository.findById(id)
+    public void deactivateBranch(Long id) {
+        Branch branch = branchRepository.findById(id)
                 .orElseThrow(BranchNotFoundException::new);
+
         authorizationService.authorizeBranchDelete(branch);
-        branchRepository.delete(branch);
+
+        branch.setStatus(BranchStatus.INACTIVE);
+        branchRepository.save(branch);
+    }
+
+    @Override
+    public void activateBranch(Long id) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(BranchNotFoundException::new);
+
+        authorizationService.authorizeBranchDelete(branch);
+
+        branch.setStatus(BranchStatus.ACTIVE);
+        branchRepository.save(branch);
     }
 
     @Override
