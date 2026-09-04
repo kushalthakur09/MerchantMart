@@ -131,33 +131,96 @@ public class EmployeeServiceImpl implements EmployeeService {
         // Employee cannot update/manage themselves
         authorizationService.authorizeEmployeeUpdate(employee);
 
+        User currentUser = userService.getCurrentUser();
+
         Role newRole = dto.getRole();
         Branch newBranch = null;
 
-        if (newRole == Role.ROLE_BRANCH_MANAGER || newRole == Role.ROLE_BRANCH_CASHIER) {
+        /*
+         * Branch Manager can only manage existing
+         * Branch Cashiers in their own branch.
+         *
+         * They cannot:
+         * - promote a cashier to Branch Manager
+         * - change a cashier to Store Manager
+         * - move a cashier to another branch
+         */
+        if (currentUser.getRole() == Role.ROLE_BRANCH_MANAGER) {
+
+            if (employee.getRole() != Role.ROLE_BRANCH_CASHIER) {
+                throw new IllegalArgumentException(
+                        "Branch Manager can only manage Branch Cashiers.");
+            }
+
+            if (newRole != Role.ROLE_BRANCH_CASHIER) {
+                throw new IllegalArgumentException(
+                        "Branch Manager cannot change the employee role.");
+            }
+
+            if (dto.getBranchId() == null
+                    || currentUser.getBranch() == null
+                    || !dto.getBranchId().equals(currentUser.getBranch().getId())) {
+
+                throw new IllegalArgumentException(
+                        "Branch Manager can only manage employees in their own branch.");
+            }
+        }
+
+        /*
+         * Branch is required for Branch Manager
+         * and Branch Cashier roles.
+         */
+        if (newRole == Role.ROLE_BRANCH_MANAGER
+                || newRole == Role.ROLE_BRANCH_CASHIER) {
 
             if (dto.getBranchId() == null) {
-                throw new IllegalArgumentException("Branch ID is required for this role.");
+                throw new IllegalArgumentException(
+                        "Branch ID is required for this role.");
             }
 
             newBranch = branchRepository.findById(dto.getBranchId())
                     .orElseThrow(BranchNotFoundException::new);
 
-            if (!newBranch.getStore().getId().equals(employee.getStore().getId())) {
-                throw new IllegalArgumentException("Branch does not belong to employee's store.");
+            /*
+             * Employee must remain within the same store.
+             */
+            if (!newBranch.getStore().getId()
+                    .equals(employee.getStore().getId())) {
+
+                throw new IllegalArgumentException(
+                        "Branch does not belong to employee's store.");
             }
 
+            /*
+             * A branch can have only one Branch Manager.
+             */
             if (newRole == Role.ROLE_BRANCH_MANAGER
                     && newBranch.getManager() != null
                     && !newBranch.getManager().getId()
                     .equals(employee.getId())) {
 
-                throw new IllegalArgumentException("This branch already has a manager.");
+                throw new IllegalArgumentException(
+                        "This branch already has a manager.");
             }
         }
 
-        authorizationService.authorizeEmployeeRoleUpdate(employee.getStore(),newRole,newBranch);
+        /*
+         * Verify that the current user is allowed
+         * to assign the requested role.
+         */
+        authorizationService.authorizeEmployeeRoleUpdate(
+                employee.getStore(),
+                newRole,
+                newBranch
+        );
 
+        /*
+         * If an existing Branch Manager is:
+         * - changed to another role, OR
+         * - moved to another branch
+         *
+         * remove them from the old branch's manager reference.
+         */
         if (employee.getRole() == Role.ROLE_BRANCH_MANAGER
                 && employee.getBranch() != null
                 && (newRole != Role.ROLE_BRANCH_MANAGER
@@ -166,27 +229,42 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             Branch oldBranch = employee.getBranch();
 
-            if (oldBranch.getManager() != null && oldBranch.getManager().getId().equals(employee.getId())) {
+            if (oldBranch.getManager() != null
+                    && oldBranch.getManager().getId()
+                    .equals(employee.getId())) {
+
                 oldBranch.setManager(null);
                 branchRepository.save(oldBranch);
             }
         }
 
+        /*
+         * Store Manager is a store-level employee.
+         */
         if (newRole == Role.ROLE_STORE_MANAGER) {
+
             employee.setRole(Role.ROLE_STORE_MANAGER);
             employee.setBranch(null);
 
         } else {
+
             employee.setRole(newRole);
             employee.setBranch(newBranch);
+
+            /*
+             * Keep Branch.manager synchronized with
+             * the Branch Manager employee.
+             */
             if (newRole == Role.ROLE_BRANCH_MANAGER) {
                 newBranch.setManager(employee);
                 branchRepository.save(newBranch);
             }
         }
-        return UserMapper.toDto(employeeRepository.save(employee));
-    }
 
+        return UserMapper.toDto(
+                employeeRepository.save(employee)
+        );
+    }
     @Override
     public void deleteEmployee(Long id) {
 

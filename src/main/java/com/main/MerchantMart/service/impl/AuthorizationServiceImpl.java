@@ -342,22 +342,40 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void authorizeEmployeeUpdate(User employee) {
+
         authorizeStoreAccess(employee.getStore());
+
         User user = currentUser();
 
         if (user.getId().equals(employee.getId())) {
-            throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
         }
 
         if (isAdmin(user)) {
             return;
         }
+
         if (isStoreAdmin(user)
                 && belongsToStore(user, employee.getStore())
                 && employee.getRole() != Role.ROLE_ADMIN) {
             return;
         }
-        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+
+        if (isStoreManager(user)
+                && belongsToStore(user, employee.getStore())
+                && employee.getRole() != Role.ROLE_ADMIN) {
+            return;
+        }
+
+        if (isBranchManager(user)
+                && belongsToBranch(user, employee.getBranch())
+                && employee.getRole() == Role.ROLE_BRANCH_CASHIER) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
@@ -375,26 +393,17 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 && (newRole == Role.ROLE_STORE_MANAGER
                 || newRole == Role.ROLE_BRANCH_MANAGER
                 || newRole == Role.ROLE_BRANCH_CASHIER)) {
-
             return;
         }
 
         if (isStoreManager(user)
                 && belongsToStore(user, store)
-                && (newRole == Role.ROLE_BRANCH_MANAGER
-                || newRole == Role.ROLE_BRANCH_CASHIER)) {
-
+                && newRole == Role.ROLE_BRANCH_MANAGER) {
             return;
         }
 
-        if (isBranchManager(user)
-                && newRole == Role.ROLE_BRANCH_CASHIER
-                && branch != null
-                && belongsToBranch(user, branch)) {
-            return;
-        }
-
-        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_EMPLOYEE);
     }
 
     @Override
