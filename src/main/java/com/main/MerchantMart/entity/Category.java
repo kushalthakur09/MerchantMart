@@ -1,5 +1,6 @@
 package com.main.MerchantMart.entity;
 
+import com.main.MerchantMart.domain.CategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,11 @@ public class Category {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private CategoryStatus status = CategoryStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)

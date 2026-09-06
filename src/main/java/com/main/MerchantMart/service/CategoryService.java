@@ -10,6 +10,7 @@ public interface CategoryService {
     CategoryDto updateCategory(Long id,CategoryDto categoryDto);
 
     List<CategoryDto> getCategoriesByStoreId(Long storeId);
+    void deactivateCategory(Long id);
 
-    void deleteCategory(Long id);
+    void activateCategory(Long id);
 }

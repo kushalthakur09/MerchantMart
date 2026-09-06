@@ -1,5 +1,6 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.CategoryStatus;
 import com.main.MerchantMart.entity.Category;
 import com.main.MerchantMart.entity.Store;
 import com.main.MerchantMart.exception.notfound.CategoryNotFoundException;
@@ -86,10 +87,27 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(CategoryNotFoundException::new);
+    public void deactivateCategory(Long id) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(CategoryNotFoundException::new);
         authorizationService.authorizeCategoryDelete(category);
-        categoryRepository.delete(category);
+
+        category.setStatus(CategoryStatus.INACTIVE);
+        categoryRepository.save(category);
+    }
+
+    @Override
+    public void activateCategory(Long id) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(CategoryNotFoundException::new);
+
+        authorizationService.authorizeCategoryDelete(category);
+
+        category.setStatus(CategoryStatus.ACTIVE);
+
+        categoryRepository.save(category);
     }
 
 

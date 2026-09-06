@@ -34,9 +34,20 @@ public class CategoryController {
         return  ResponseEntity.ok(categoryService.updateCategory(id,categoryDto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.ok(new ApiResponse(ApiConstants.CATEGORY_DELETED_SUCCESSFULLY));
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse> deactivate(@PathVariable Long id) {
+
+        categoryService.deactivateCategory(id);
+
+        return ResponseEntity.ok( new ApiResponse("Category deactivated successfully.")
+        );
+    }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse> activate(@PathVariable Long id) {
+        categoryService.activateCategory(id);
+
+        return ResponseEntity.ok( new ApiResponse("Category activated successfully.")
+        );
     }
 }
