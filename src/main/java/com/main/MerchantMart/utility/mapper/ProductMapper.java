@@ -19,6 +19,7 @@ public class ProductMapper {
                     .brand(product.getBrand())
                     .storeId(product.getStore() != null ? product.getStore().getId():null)
                     .image(product.getImage())
+                    .status(product.getStatus())
                     .category(CategoryMapper.toDto(product.getCategory()))
                     .categoryId(product.getCategory().getId())
                     .build();

@@ -7,11 +7,9 @@ import java.util.List;
 
 public interface ProductService {
     ProductDto createProduct(ProductDto productDto);
-
     ProductDto updateProduct(Long id,ProductDto productDto);
-
-    void deleteProduct(Long id);
-
     List<ProductDto> getProductsByStoreId(Long storeId);
     List<ProductDto> searchByKeyword(Long storeId,String keyword);
+    void deactivateProduct(Long id);
+    void activateProduct(Long id);
 }

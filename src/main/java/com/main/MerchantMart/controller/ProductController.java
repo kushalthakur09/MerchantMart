@@ -42,14 +42,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProduct(id, productDto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(
-            @PathVariable Long id) {
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse> deactivate(@PathVariable Long id) {
+        productService.deactivateProduct(id);
+        return ResponseEntity.ok(new ApiResponse("Product deactivated successfully."));
+    }
 
-        productService.deleteProduct(id);
-
-        return ResponseEntity.ok(
-                new ApiResponse(ApiConstants.PRODUCT_DELETED_SUCCESSFULLY));
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse> activate(@PathVariable Long id) {
+        productService.activateProduct(id);
+        return ResponseEntity.ok(new ApiResponse("Product activated successfully."));
     }
 
     @GetMapping("/store/{storeId}/search")

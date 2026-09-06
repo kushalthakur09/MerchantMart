@@ -1,5 +1,6 @@
 package com.main.MerchantMart.payload.dto;
 
+import com.main.MerchantMart.domain.ProductStatus;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,6 +40,8 @@ public class ProductDto {
     private String brand;
 
     private String image;
+
+    private ProductStatus status;
 
     private CategoryDto category;
 

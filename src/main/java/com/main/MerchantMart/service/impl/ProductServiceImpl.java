@@ -1,5 +1,6 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.ProductStatus;
 import com.main.MerchantMart.entity.Category;
 import com.main.MerchantMart.entity.Product;
 import com.main.MerchantMart.entity.Store;
@@ -118,14 +119,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProduct(Long id) {
-        Product product=productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
-        authorizationService.authorizeProductDelete(product);
-        productRepository.delete(product);
-    }
-
-    @Override
     public List<ProductDto> getProductsByStoreId(Long storeId) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(StoreNotFoundException::new);
@@ -147,5 +140,27 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(ProductMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    public void deactivateProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+
+        authorizationService.authorizeProductDelete(product);
+
+        product.setStatus(ProductStatus.INACTIVE);
+        productRepository.save(product);
+    }
+
+    @Override
+    public void activateProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+
+        authorizationService.authorizeProductDelete(product);
+
+        product.setStatus(ProductStatus.ACTIVE);
+        productRepository.save(product);
     }
 }
