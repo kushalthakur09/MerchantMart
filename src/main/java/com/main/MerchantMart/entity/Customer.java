@@ -1,5 +1,6 @@
 package com.main.MerchantMart.entity;
 
+import com.main.MerchantMart.domain.CustomerStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,11 @@ public class Customer {
     private String email;
 
     private String phoneNo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private CustomerStatus status = CustomerStatus.ACTIVE;
 
     @CreationTimestamp
     private LocalDateTime createdDate;

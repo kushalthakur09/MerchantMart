@@ -563,6 +563,21 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
+    public void authorizeCustomerStatusChange() {
+        User user = currentUser();
+
+        if (isAdmin(user)
+                || user.getRole() == Role.ROLE_STORE_ADMIN
+                || user.getRole() == Role.ROLE_STORE_MANAGER) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_CUSTOMER
+        );
+    }
+
+    @Override
     public void authorizeCustomerView() {
         currentUser();
     }

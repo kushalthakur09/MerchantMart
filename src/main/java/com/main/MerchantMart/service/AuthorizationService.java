@@ -70,7 +70,8 @@ public interface AuthorizationService {
     void authorizeCustomerUpdate();
     void authorizeCustomerDelete();
     void authorizeCustomerView();
-
+    void authorizeCustomerStatusChange();
+    
     void authorizeShiftStart();
     void authorizeShiftEnd(ShiftReport shiftReport);
     void authorizeShiftViewOwn();

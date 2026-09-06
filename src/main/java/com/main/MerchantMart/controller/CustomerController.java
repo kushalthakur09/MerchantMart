@@ -44,9 +44,21 @@ public class CustomerController {
         return  ResponseEntity.ok(customerService.updateCustomer(id,customerDto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id){
-        customerService.deleteCustomer(id);
-        return  ResponseEntity.ok(new ApiResponse(ApiConstants.CUSTOMER_DELETED_SUCCESSFULLY));
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse> deactivate(@PathVariable Long id) {
+        customerService.deactivateCustomer(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse("Customer deactivated successfully.")
+        );
+    }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse> activate(@PathVariable Long id) {
+        customerService.activateCustomer(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse("Customer activated successfully.")
+        );
     }
 }

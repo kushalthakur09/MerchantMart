@@ -1,5 +1,6 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.CustomerStatus;
 import com.main.MerchantMart.entity.Customer;
 import com.main.MerchantMart.exception.notfound.CustomerNotFoundException;
 import com.main.MerchantMart.payload.dto.CustomerDto;
@@ -44,13 +45,28 @@ public class CustomerServiceImpl implements CustomerService {
 
         return CustomerMapper.toDto(customerRepository.save(customer));
     }
-
     @Override
-    public void deleteCustomer(Long id) {
+    public void deactivateCustomer(Long id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(CustomerNotFoundException::new);
-        authorizationService.authorizeCustomerDelete();
-        customerRepository.delete(customer);
+
+        authorizationService.authorizeCustomerStatusChange();
+
+        customer.setStatus(CustomerStatus.INACTIVE);
+
+        customerRepository.save(customer);
+    }
+
+    @Override
+    public void activateCustomer(Long id) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(CustomerNotFoundException::new);
+
+        authorizationService.authorizeCustomerStatusChange();
+
+        customer.setStatus(CustomerStatus.ACTIVE);
+
+        customerRepository.save(customer);
     }
 
     @Override

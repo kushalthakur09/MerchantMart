@@ -10,7 +10,9 @@ public interface CustomerService {
 
     CustomerDto updateCustomer(Long id,CustomerDto customerDto);
 
-    void deleteCustomer(Long id);
+    void deactivateCustomer(Long id);
+
+    void activateCustomer(Long id);
 
     CustomerDto getCustomer(Long id);
 

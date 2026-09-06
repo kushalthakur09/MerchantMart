@@ -1,5 +1,6 @@
 package com.main.MerchantMart.payload.dto;
 
+import com.main.MerchantMart.domain.CustomerStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -21,4 +22,5 @@ public class CustomerDto {
     @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
     private String phoneNo;
 
+    private CustomerStatus status;
 }

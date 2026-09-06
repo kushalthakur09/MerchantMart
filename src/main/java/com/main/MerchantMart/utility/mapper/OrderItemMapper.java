@@ -28,7 +28,7 @@ public class OrderItemMapper {
     public static OrderItem toEntity(OrderItemDto orderItemDto, Order order, Product product){
         return OrderItem
                 .builder()
-                .price(product.getSellingPrice().multiply(BigDecimal.valueOf(orderItemDto.getQuantity())))
+                .price(product.getSellingPrice())
                 .quantity(orderItemDto.getQuantity())
                 .order(order)
                 .product(product)
