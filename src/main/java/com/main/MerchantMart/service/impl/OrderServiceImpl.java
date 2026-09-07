@@ -1,10 +1,13 @@
 package com.main.MerchantMart.service.impl;
 
+import com.main.MerchantMart.domain.CustomerStatus;
 import com.main.MerchantMart.domain.OrderStatus;
 import com.main.MerchantMart.domain.PaymentType;
+import com.main.MerchantMart.domain.ProductStatus;
 import com.main.MerchantMart.entity.*;
 import com.main.MerchantMart.exception.notfound.*;
 import com.main.MerchantMart.payload.dto.OrderDto;
+import com.main.MerchantMart.payload.dto.OrderItemDto;
 import com.main.MerchantMart.repository.*;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.OrderService;
@@ -19,6 +22,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,8 +41,41 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public OrderDto createOrder(OrderDto orderDto) {
+
+        if (orderDto == null) {
+            throw new IllegalArgumentException("Order data is required.");
+        }
+
+        if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one item.");
+        }
+
+        // Validate and merge duplicate products
+        Map<Long, Integer> mergedItems = orderDto.getItems()
+                .stream()
+                .peek(item -> {
+                    if (item.getProductId() == null) {
+                        throw new IllegalArgumentException(
+                                "Product is required for every order item."
+                        );
+                    }
+
+                    if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                        throw new IllegalArgumentException(
+                                "Quantity must be greater than zero."
+                        );
+                    }
+                })
+                .collect(Collectors.toMap(
+                        OrderItemDto::getProductId,
+                        OrderItemDto::getQuantity,
+                        Integer::sum
+                ));
+
         User cashier = userService.getCurrentUser();
+
         Branch branch = cashier.getBranch();
+
         if (branch == null) {
             throw new BranchNotFoundException();
         }
@@ -47,6 +85,12 @@ public class OrderServiceImpl implements OrderService {
         Customer customer = customerRepository.findById(orderDto.getCustomerId())
                 .orElseThrow(CustomerNotFoundException::new);
 
+        if (customer.getStatus() != CustomerStatus.ACTIVE) {
+            throw new IllegalArgumentException(
+                    "Customer is inactive. Activate the customer before creating an order."
+            );
+        }
+
         Order order = Order.builder()
                 .branch(branch)
                 .cashier(cashier)
@@ -55,31 +99,52 @@ public class OrderServiceImpl implements OrderService {
                 .status(OrderStatus.COMPLETED)
                 .build();
 
-        List<OrderItem> orderItems = orderDto.getItems()
+        List<OrderItem> orderItems = mergedItems.entrySet()
                 .stream()
-                .map(itemDto -> {
-                    Product product = productRepository.findById(itemDto.getProductId())
+                .map(entry -> {
+
+                    Long productId = entry.getKey();
+                    Integer quantity = entry.getValue();
+
+                    Product product = productRepository.findById(productId)
                             .orElseThrow(ProductNotFoundException::new);
 
-                    if (!product.getStore().getId().equals(branch.getStore().getId())) {
-                        throw new IllegalArgumentException("Product does not belong to the same store.");
+                    if (product.getStatus() != ProductStatus.ACTIVE) {
+                        throw new IllegalArgumentException(
+                                "Product is inactive and cannot be added to an order."
+                        );
                     }
 
-                    Inventory inventory = inventoryRepository.findByProductIdAndBranchId(
+                    if (!product.getStore().getId().equals(branch.getStore().getId())) {
+                        throw new IllegalArgumentException(
+                                "Product does not belong to the same store."
+                        );
+                    }
+
+                    Inventory inventory = inventoryRepository
+                            .findByProductIdAndBranchId(
                                     product.getId(),
-                                    branch.getId())
+                                    branch.getId()
+                            )
                             .orElseThrow(InventoryNotFoundException::new);
 
-                    if (inventory.getQuantity() < itemDto.getQuantity()) {
-                        throw new IllegalArgumentException("Insufficient inventory for product: "+ product.getName());
+                    if (inventory.getQuantity() < quantity) {
+                        throw new IllegalArgumentException(
+                                "Insufficient inventory for product: "
+                                        + product.getName()
+                        );
                     }
 
-                    inventory.setQuantity(inventory.getQuantity() - itemDto.getQuantity());
+                    inventory.setQuantity(
+                            inventory.getQuantity() - quantity
+                    );
+
                     BigDecimal price = product.getSellingPrice();
+
                     return OrderItem.builder()
                             .order(order)
                             .product(product)
-                            .quantity(itemDto.getQuantity())
+                            .quantity(quantity)
                             .price(price)
                             .build();
                 })
@@ -87,11 +152,12 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal totalAmount = orderItems.stream()
                 .map(item -> item.getPrice()
-                .multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
+
         return OrderMapper.toDto(orderRepository.save(order));
     }
 
@@ -145,16 +211,6 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(OrderMapper::toDto)
                 .toList();
-    }
-
-    @Override
-    public void deleteOrder(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(OrderNotFoundException::new);
-
-        authorizationService.authorizeOrderDelete(order);
-
-        orderRepository.delete(order);
     }
 
     @Override

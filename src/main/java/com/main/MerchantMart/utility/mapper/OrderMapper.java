@@ -18,6 +18,7 @@ public class OrderMapper {
                         .paymentType(order.getPaymentType())
                         .items(order.getItems().stream().map(OrderItemMapper::toDto).toList())
                         .status(order.getStatus())
+                        .createdDate(order.getCreatedDate())
                         .build();
     }
     public static Order toEntity(OrderDto orderDto, User cashier, Branch branch) {

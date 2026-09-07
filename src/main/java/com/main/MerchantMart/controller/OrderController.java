@@ -60,10 +60,4 @@ public class OrderController {
         return  ResponseEntity.ok(orderService.getOrderById(id));
     }
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id){
-        orderService.deleteOrder(id);
-        return  ResponseEntity.ok(new ApiResponse(ApiConstants.ORDER_DELETED_SUCCESSFULLY));
-    }
 }

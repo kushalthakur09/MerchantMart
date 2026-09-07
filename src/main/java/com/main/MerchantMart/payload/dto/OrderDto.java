@@ -2,7 +2,8 @@ package com.main.MerchantMart.payload.dto;
 
 import com.main.MerchantMart.domain.OrderStatus;
 import com.main.MerchantMart.domain.PaymentType;
-import com.main.MerchantMart.entity.Customer;
+
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +30,7 @@ public class OrderDto {
     @NotNull(message = "Customer is mandatory")
     private Long customerId;
 
-    @NotNull(message = "Item List is mandatory field")
+    @NotEmpty(message = "Order must contain at least one item")
     private List<OrderItemDto> items;
 
     @NotNull(message = "Payment Type is mandatory field")

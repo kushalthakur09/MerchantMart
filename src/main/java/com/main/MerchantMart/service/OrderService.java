@@ -16,7 +16,6 @@ public interface OrderService {
                                      OrderStatus orderStatus);
 
     List<OrderDto> getOrderByCashier(Long cashierId);
-    void deleteOrder(Long id);
     List<OrderDto> getTodayOrdersByBranch(Long branchId);
     List<OrderDto> getOrdersByCustomerId(Long customerId);
     List<OrderDto> getTop5RecentOrdersByBranchId(Long branchId);
