@@ -3,7 +3,6 @@ package com.main.MerchantMart.service;
 import com.main.MerchantMart.domain.Role;
 import com.main.MerchantMart.entity.*;
 
-
 public interface AuthorizationService {
 
     // Store
@@ -33,7 +32,7 @@ public interface AuthorizationService {
     void authorizeProductView(Store product);
     void authorizeProductSearch(Store store);
 
-    //Order
+    // Order
     void authorizeOrderCreate(Branch branch);
     void authorizeOrderView(Branch branch);
     void authorizeOrderViewByCashier(User cashier);
@@ -45,13 +44,21 @@ public interface AuthorizationService {
     void authorizeInventoryDelete(Inventory inventory);
     void authorizeInventoryView(Branch branch);
 
-    // Employee (later)
-    void authorizeEmployeeCreate(Store store, Role roleToCreate,Branch branch);
+    // Employee
+    void authorizeEmployeeCreate(
+            Store store,
+            Role roleToCreate,
+            Branch branch
+    );
+
     void authorizeEmployeeUpdate(User employee);
+
     void authorizeEmployeeRoleUpdate(
             Store store,
             Role newRole,
-            Branch branch);
+            Branch branch
+    );
+
     void authorizeEmployeeDelete(User employee);
     void authorizeEmployeeView(User employee);
     void authorizeEmployeeStoreView(Store store);
@@ -62,16 +69,9 @@ public interface AuthorizationService {
     void authorizeRefundView(Branch branch);
     void authorizeRefundDelete(Refund refund);
     void authorizeRefundViewAll();
-
-
     void authorizeRefundViewByCashier(User cashier);
 
-    void authorizeCustomerCreate();
-    void authorizeCustomerUpdate();
-    void authorizeCustomerDelete();
-    void authorizeCustomerView();
-    void authorizeCustomerStatusChange();
-    
+    // Shift
     void authorizeShiftStart();
     void authorizeShiftEnd(ShiftReport shiftReport);
     void authorizeShiftViewOwn();
@@ -80,11 +80,24 @@ public interface AuthorizationService {
     void authorizeShiftReportView(ShiftReport shiftReport);
     void authorizeShiftViewAll();
 
-    // customer
+    // Customer
     void authorizeCustomerAccess();
 
-    // super admin store
+    // General customer management
+    void authorizeCustomerCreate();
+    void authorizeCustomerUpdate(Customer customer);
+    void authorizeCustomerActivation(Customer customer);
+    void authorizeCustomerDeactivation(Customer customer);
+    void authorizeCustomerView(Customer customer);
+    void authorizeCustomerViewAll();
+    void authorizeCustomerSearch();
+
+    // POS / Order customer operations
+    void authorizeCustomerAccessForOrder();
+    void authorizeCustomerCreateForOrder();
+    void authorizeCustomerActivationForOrder(Customer customer);
+
+    // Super Admin / Store
     void authorizeStoreStatusChange();
     void authorizeStoreAdminCreate();
 }
-

@@ -3,7 +3,6 @@ package com.main.MerchantMart.controller;
 import com.main.MerchantMart.payload.dto.CustomerDto;
 import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.CustomerService;
-import com.main.MerchantMart.utility.contants.ApiConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,36 +15,55 @@ import java.util.List;
 @RequestMapping("/api/customer")
 @RequiredArgsConstructor
 public class CustomerController {
-    private  final CustomerService customerService;
+
+    private final CustomerService customerService;
+
+    // =========================
+    // General Customer Management
+    // =========================
 
     @PostMapping
-    public ResponseEntity<CustomerDto> create(@Valid @RequestBody CustomerDto customerDto){
-        return  ResponseEntity.status(HttpStatus.CREATED).body(customerService.createCustomer(customerDto));
+    public ResponseEntity<CustomerDto> create(
+            @Valid @RequestBody CustomerDto customerDto
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(customerService.createCustomer(customerDto));
     }
 
-    @GetMapping()
-    public ResponseEntity<List<CustomerDto>> getAllCustomer(){
-        return  ResponseEntity.ok(customerService.getAllCustomer());
+    @GetMapping
+    public ResponseEntity<List<CustomerDto>> getAllCustomer() {
+        return ResponseEntity.ok(customerService.getAllCustomer());
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<CustomerDto>> searchCustomer(@RequestParam("keyword") String keyword){
-        return  ResponseEntity.ok(customerService.search(keyword));
+    public ResponseEntity<List<CustomerDto>> searchCustomer(
+            @RequestParam("keyword") String keyword
+    ) {
+        return ResponseEntity.ok(customerService.search(keyword));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("id") Long id){
-        return  ResponseEntity.ok(customerService.getCustomer(id));
+    public ResponseEntity<CustomerDto> getCustomerById(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(customerService.getCustomer(id));
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerDto> update(@PathVariable("id") Long id, @RequestBody CustomerDto customerDto){
-        return  ResponseEntity.ok(customerService.updateCustomer(id,customerDto));
+    public ResponseEntity<CustomerDto> update(
+            @PathVariable Long id,
+            @RequestBody CustomerDto customerDto
+    ) {
+        return ResponseEntity.ok(
+                customerService.updateCustomer(id, customerDto)
+        );
     }
 
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<ApiResponse> deactivate(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> deactivate(
+            @PathVariable Long id
+    ) {
         customerService.deactivateCustomer(id);
 
         return ResponseEntity.ok(
@@ -54,8 +72,52 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}/activate")
-    public ResponseEntity<ApiResponse> activate(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> activate(
+            @PathVariable Long id
+    ) {
         customerService.activateCustomer(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse("Customer activated successfully.")
+        );
+    }
+
+    // =========================
+    // POS Customer Operations
+    // =========================
+
+    @PostMapping("/order")
+    public ResponseEntity<CustomerDto> createForOrder(
+            @Valid @RequestBody CustomerDto customerDto
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(customerService.createCustomerForOrder(customerDto));
+    }
+
+    @GetMapping("/order/search")
+    public ResponseEntity<List<CustomerDto>> searchForOrder(
+            @RequestParam("keyword") String keyword
+    ) {
+        return ResponseEntity.ok(
+                customerService.searchForOrder(keyword)
+        );
+    }
+
+    @GetMapping("/order/{id}")
+    public ResponseEntity<CustomerDto> getForOrder(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                customerService.getCustomerForOrder(id)
+        );
+    }
+
+    @PutMapping("/order/{id}/activate")
+    public ResponseEntity<ApiResponse> activateForOrder(
+            @PathVariable Long id
+    ) {
+        customerService.activateCustomerForOrder(id);
 
         return ResponseEntity.ok(
                 new ApiResponse("Customer activated successfully.")

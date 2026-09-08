@@ -85,6 +85,10 @@ public class OrderServiceImpl implements OrderService {
         Customer customer = customerRepository.findById(orderDto.getCustomerId())
                 .orElseThrow(CustomerNotFoundException::new);
 
+        if (customer.getStore() == null || !customer.getStore().getId().equals(branch.getStore().getId())) {
+            throw new IllegalArgumentException("Please register the customer in this store before placing the order.");
+        }
+
         if (customer.getStatus() != CustomerStatus.ACTIVE) {
             throw new IllegalArgumentException(
                     "Customer is inactive. Activate the customer before creating an order."

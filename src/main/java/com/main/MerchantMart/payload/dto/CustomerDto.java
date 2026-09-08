@@ -23,4 +23,6 @@ public class CustomerDto {
     private String phoneNo;
 
     private CustomerStatus status;
+
+    private Long storeId;
 }

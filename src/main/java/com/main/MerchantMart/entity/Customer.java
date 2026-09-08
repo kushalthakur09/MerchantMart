@@ -2,20 +2,17 @@ package com.main.MerchantMart.entity;
 
 import com.main.MerchantMart.domain.CustomerStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity
 public class Customer {
 
     @Id
@@ -33,6 +30,10 @@ public class Customer {
     @Column(nullable = false)
     @Builder.Default
     private CustomerStatus status = CustomerStatus.ACTIVE;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
 
     @CreationTimestamp
     private LocalDateTime createdDate;
