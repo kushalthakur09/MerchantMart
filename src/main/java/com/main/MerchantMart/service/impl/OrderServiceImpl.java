@@ -14,7 +14,6 @@ import com.main.MerchantMart.service.OrderService;
 import com.main.MerchantMart.service.UserService;
 import com.main.MerchantMart.utility.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,29 +37,41 @@ public class OrderServiceImpl implements OrderService {
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
 
+    // =========================================================
+    // CREATE ORDER
+    // =========================================================
+
     @Transactional
     @Override
     public OrderDto createOrder(OrderDto orderDto) {
 
         if (orderDto == null) {
-            throw new IllegalArgumentException("Order data is required.");
+            throw new IllegalArgumentException(
+                    "Order data is required."
+            );
         }
 
-        if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
-            throw new IllegalArgumentException("Order must contain at least one item.");
+        if (orderDto.getItems() == null
+                || orderDto.getItems().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "Order must contain at least one item."
+            );
         }
 
-        // Validate and merge duplicate products
         Map<Long, Integer> mergedItems = orderDto.getItems()
                 .stream()
                 .peek(item -> {
+
                     if (item.getProductId() == null) {
                         throw new IllegalArgumentException(
                                 "Product is required for every order item."
                         );
                     }
 
-                    if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                    if (item.getQuantity() == null
+                            || item.getQuantity() <= 0) {
+
                         throw new IllegalArgumentException(
                                 "Quantity must be greater than zero."
                         );
@@ -82,16 +93,23 @@ public class OrderServiceImpl implements OrderService {
 
         authorizationService.authorizeOrderCreate(branch);
 
-        Customer customer = customerRepository.findById(orderDto.getCustomerId())
+        Customer customer = customerRepository
+                .findById(orderDto.getCustomerId())
                 .orElseThrow(CustomerNotFoundException::new);
 
-        if (customer.getStore() == null || !customer.getStore().getId().equals(branch.getStore().getId())) {
-            throw new IllegalArgumentException("Please register the customer in this store before placing the order.");
+        if (customer.getStore() == null
+                || !customer.getStore()
+                .getId()
+                .equals(branch.getStore().getId())) {
+
+            throw new IllegalArgumentException(
+                    "Please register the customer in this store before placing the order."
+            );
         }
 
         if (customer.getStatus() != CustomerStatus.ACTIVE) {
             throw new IllegalArgumentException(
-                    "Customer is inactive. Activate the customer before creating an order."
+                    "Customer is inactive. Activate the customer before creating the order."
             );
         }
 
@@ -110,7 +128,8 @@ public class OrderServiceImpl implements OrderService {
                     Long productId = entry.getKey();
                     Integer quantity = entry.getValue();
 
-                    Product product = productRepository.findById(productId)
+                    Product product = productRepository
+                            .findById(productId)
                             .orElseThrow(ProductNotFoundException::new);
 
                     if (product.getStatus() != ProductStatus.ACTIVE) {
@@ -119,7 +138,10 @@ public class OrderServiceImpl implements OrderService {
                         );
                     }
 
-                    if (!product.getStore().getId().equals(branch.getStore().getId())) {
+                    if (!product.getStore()
+                            .getId()
+                            .equals(branch.getStore().getId())) {
+
                         throw new IllegalArgumentException(
                                 "Product does not belong to the same store."
                         );
@@ -156,23 +178,39 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal totalAmount = orderItems.stream()
                 .map(item -> item.getPrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .multiply(
+                                BigDecimal.valueOf(item.getQuantity())
+                        ))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
 
-        return OrderMapper.toDto(orderRepository.save(order));
+        return OrderMapper.toDto(
+                orderRepository.save(order)
+        );
     }
+
+    // =========================================================
+    // SINGLE ORDER
+    // =========================================================
 
     @Override
     public OrderDto getOrderById(Long id) {
+
         Order order = orderRepository.findById(id)
                 .orElseThrow(OrderNotFoundException::new);
-        authorizationService.authorizeOrderView(order.getBranch());
+
+        authorizationService.authorizeOrderView(
+                order.getBranch()
+        );
 
         return OrderMapper.toDto(order);
     }
+
+    // =========================================================
+    // BRANCH ORDERS
+    // =========================================================
 
     @Override
     public List<OrderDto> getOrdersByBranch(
@@ -180,72 +218,167 @@ public class OrderServiceImpl implements OrderService {
             Long customerId,
             Long cashierId,
             PaymentType paymentType,
-            OrderStatus orderStatus) {
+            OrderStatus orderStatus
+    ) {
 
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
 
         authorizationService.authorizeOrderView(branch);
 
-        return orderRepository.findByBranchId(branchId)
+        return orderRepository
+                .findBranchOrdersWithFilters(
+                        branchId,
+                        customerId,
+                        cashierId,
+                        paymentType,
+                        orderStatus
+                )
                 .stream()
-                .filter(order -> customerId == null ||
-                        (order.getCustomer() != null && order.getCustomer().getId().equals(customerId)))
-                .filter(order -> cashierId == null ||
-                        (order.getCashier() != null && order.getCashier().getId().equals(cashierId)))
-                .filter(order -> paymentType == null || order.getPaymentType() == paymentType)
-                .filter(order -> orderStatus == null || order.getStatus() == orderStatus)
                 .map(OrderMapper::toDto)
                 .toList();
     }
 
+    // =========================================================
+    // STORE ORDERS
+    // =========================================================
+
+    @Override
+    public List<OrderDto> getOrdersByStore(Long storeId) {
+
+        User currentUser = userService.getCurrentUser();
+
+        // Super Admin
+        if (currentUser.getStore() == null
+                && currentUser.getBranch() == null) {
+
+            return orderRepository
+                    .findAllByOrderByCreatedDateDesc()
+                    .stream()
+                    .map(OrderMapper::toDto)
+                    .toList();
+        }
+
+        Store currentStore;
+
+        if (currentUser.getStore() != null) {
+            currentStore = currentUser.getStore();
+        } else if (currentUser.getBranch() != null
+                && currentUser.getBranch().getStore() != null) {
+
+            currentStore = currentUser.getBranch().getStore();
+
+        } else {
+            throw new StoreNotFoundException();
+        }
+
+        if (!currentStore.getId().equals(storeId)) {
+            throw new IllegalArgumentException(
+                    "You are not authorized to access this store's orders."
+            );
+        }
+
+        authorizationService.authorizeStoreAccess(currentStore);
+
+        return orderRepository
+                .findByStoreId(storeId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .toList();
+    }
+
+    // =========================================================
+    // CASHIER ORDERS
+    // =========================================================
+
     @Override
     public List<OrderDto> getOrderByCashier(Long cashierId) {
+
         User requestedCashier = userRepository.findById(cashierId)
-                .orElseThrow(() -> new UserNotFoundException(cashierId));
+                .orElseThrow(() ->
+                        new UserNotFoundException(cashierId)
+                );
 
         if (requestedCashier.getBranch() == null) {
             throw new BranchNotFoundException();
         }
 
-        authorizationService.authorizeStoreAccess(requestedCashier.getBranch().getStore());
-        authorizationService.authorizeOrderViewByCashier(requestedCashier);
+        authorizationService.authorizeStoreAccess(
+                requestedCashier.getBranch().getStore()
+        );
 
-        return orderRepository.findByCashierId(cashierId)
+        authorizationService.authorizeOrderViewByCashier(
+                requestedCashier
+        );
+
+        return orderRepository
+                .findByCashierId(cashierId)
                 .stream()
                 .map(OrderMapper::toDto)
                 .toList();
     }
 
+    // =========================================================
+    // TODAY'S BRANCH ORDERS
+    // =========================================================
+
     @Override
-    public List<OrderDto> getTodayOrdersByBranch(Long branchId) {
+    public List<OrderDto> getTodayOrdersByBranch(
+            Long branchId
+    ) {
+
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
 
         authorizationService.authorizeOrderView(branch);
 
         LocalDate today = LocalDate.now();
+
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.plusDays(1).atStartOfDay();
 
         return orderRepository
-                .findByBranchIdAndCreatedDateBetween(branchId, start, end)
+                .findByBranchIdAndCreatedDateBetween(
+                        branchId,
+                        start,
+                        end
+                )
                 .stream()
                 .map(OrderMapper::toDto)
                 .toList();
     }
 
+    // =========================================================
+    // CUSTOMER ORDERS
+    // =========================================================
+
     @Override
-    public List<OrderDto> getOrdersByCustomerId(Long customerId) {
-        List<Order> orders = orderRepository.findByCustomerId(customerId);
+    public List<OrderDto> getOrdersByCustomerId(
+            Long customerId
+    ) {
+
+        List<Order> orders = orderRepository
+                .findByCustomerId(customerId);
+
         return orders.stream()
-                .peek(order -> authorizationService.authorizeOrderView(order.getBranch()))
+                .peek(order ->
+                        authorizationService.authorizeOrderView(
+                                order.getBranch()
+                        )
+                )
                 .map(OrderMapper::toDto)
                 .toList();
     }
 
+    // =========================================================
+    // RECENT BRANCH ORDERS
+    // =========================================================
+
     @Override
-    public List<OrderDto> getTop5RecentOrdersByBranchId(Long branchId) {
+    public List<OrderDto> getTop5RecentOrdersByBranchId(
+            Long branchId
+    ) {
+
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(BranchNotFoundException::new);
 
@@ -253,6 +386,16 @@ public class OrderServiceImpl implements OrderService {
 
         return orderRepository
                 .findTop5ByBranchIdOrderByCreatedDateDesc(branchId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<OrderDto> getAllOrders() {
+        authorizationService.authorizeOrderViewAll();
+        return orderRepository
+                .findAllByOrderByCreatedDateDesc()
                 .stream()
                 .map(OrderMapper::toDto)
                 .toList();

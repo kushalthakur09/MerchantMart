@@ -329,6 +329,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         );
     }
 
+    @Override
+    public void authorizeOrderViewAll() {
+        if (isAdmin(currentUser())) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_ORDER);
+    }
 
     // ===========================
     // INVENTORY

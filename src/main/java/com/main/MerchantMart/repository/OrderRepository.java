@@ -5,6 +5,7 @@ import com.main.MerchantMart.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -180,4 +181,42 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Long countTodayOrders(Long storeId,
                           LocalDateTime start,
                           LocalDateTime end);
+
+
+    // =========================================================
+    // ORDER HISTORY
+    // =========================================================
+
+    // All orders belonging to a store
+    @Query("""
+            SELECT o
+            FROM Order o
+            WHERE o.branch.store.id = :storeId
+            ORDER BY o.createdDate DESC
+            """)
+    List<Order> findByStoreId(
+            @Param("storeId") Long storeId
+    );
+
+    // All orders across all stores - Super Admin
+    List<Order> findAllByOrderByCreatedDateDesc();
+
+    // Branch orders with filters
+    @Query("""
+            SELECT o
+            FROM Order o
+            WHERE o.branch.id = :branchId
+            AND (:customerId IS NULL OR o.customer.id = :customerId)
+            AND (:cashierId IS NULL OR o.cashier.id = :cashierId)
+            AND (:paymentType IS NULL OR o.paymentType = :paymentType)
+            AND (:orderStatus IS NULL OR o.status = :orderStatus)
+            ORDER BY o.createdDate DESC
+            """)
+    List<Order> findBranchOrdersWithFilters(
+            @Param("branchId") Long branchId,
+            @Param("customerId") Long customerId,
+            @Param("cashierId") Long cashierId,
+            @Param("paymentType") com.main.MerchantMart.domain.PaymentType paymentType,
+            @Param("orderStatus") com.main.MerchantMart.domain.OrderStatus orderStatus
+    );
 }

@@ -100,4 +100,6 @@ public interface AuthorizationService {
     // Super Admin / Store
     void authorizeStoreStatusChange();
     void authorizeStoreAdminCreate();
+
+    void authorizeOrderViewAll();
 }
