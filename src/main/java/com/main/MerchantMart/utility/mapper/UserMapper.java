@@ -18,6 +18,16 @@ public final class UserMapper {
         userResponse.setLastLoginDate(user.getLastLoginDate());
         userResponse.setBranchId(user.getBranch() != null ? user.getBranch().getId() : null);
         userResponse.setStoreId(user.getStore() != null ? user.getStore().getId() : null);
+
+        userResponse.setStoreName(user.getStore() != null ? user.getStore().getBrand() : null);
+
+        userResponse.setStoreStatus(
+                user.getStore() != null && user.getStore().getStatus() != null
+                        ? user.getStore().getStatus().name()
+                        : null
+        );
+
+        userResponse.setCreatedDate(user.getCreatedDate());
         return  userResponse;
     }
 

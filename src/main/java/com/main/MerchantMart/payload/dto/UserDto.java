@@ -41,4 +41,10 @@ public class UserDto {
     private Long storeId;
 
     private LocalDateTime lastLoginDate;
+
+    private String storeName;
+
+    private String storeStatus;
+
+    private LocalDateTime createdDate;
 }

@@ -36,4 +36,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Long countInactiveCashiers(Long storeId,
                                Role role,
                                LocalDateTime inactiveSince);
+
+    List<User> findByRole(Role role);
 }
