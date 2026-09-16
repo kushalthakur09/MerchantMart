@@ -88,6 +88,11 @@ public class GlobalExceptionHandler {
                 .body(build(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong."));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
+
     private ErrorResponse build(HttpStatus status, String message) {
         return ErrorResponse.builder()
                 .status(status.value())

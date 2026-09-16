@@ -1,9 +1,6 @@
 package com.main.MerchantMart.service.impl;
 
-import com.main.MerchantMart.domain.CustomerStatus;
-import com.main.MerchantMart.domain.OrderStatus;
-import com.main.MerchantMart.domain.PaymentType;
-import com.main.MerchantMart.domain.ProductStatus;
+import com.main.MerchantMart.domain.*;
 import com.main.MerchantMart.entity.*;
 import com.main.MerchantMart.exception.notfound.*;
 import com.main.MerchantMart.payload.dto.OrderDto;
@@ -36,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final AuthorizationService authorizationService;
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
+    private final ShiftReportRepository shiftReportRepository;
 
     // =========================================================
     // CREATE ORDER
@@ -46,17 +44,11 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto createOrder(OrderDto orderDto) {
 
         if (orderDto == null) {
-            throw new IllegalArgumentException(
-                    "Order data is required."
-            );
+            throw new IllegalArgumentException("Order data is required.");
         }
 
-        if (orderDto.getItems() == null
-                || orderDto.getItems().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "Order must contain at least one item."
-            );
+        if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one item.");
         }
 
         Map<Long, Integer> mergedItems = orderDto.getItems()
@@ -64,17 +56,11 @@ public class OrderServiceImpl implements OrderService {
                 .peek(item -> {
 
                     if (item.getProductId() == null) {
-                        throw new IllegalArgumentException(
-                                "Product is required for every order item."
-                        );
+                        throw new IllegalArgumentException("Product is required for every order item.");
                     }
 
-                    if (item.getQuantity() == null
-                            || item.getQuantity() <= 0) {
-
-                        throw new IllegalArgumentException(
-                                "Quantity must be greater than zero."
-                        );
+                    if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                        throw new IllegalArgumentException("Quantity must be greater than zero.");
                     }
                 })
                 .collect(Collectors.toMap(
@@ -84,6 +70,13 @@ public class OrderServiceImpl implements OrderService {
                 ));
 
         User cashier = userService.getCurrentUser();
+
+        if (cashier.getRole() == Role.ROLE_BRANCH_CASHIER) {
+            shiftReportRepository
+                    .findByCashierAndShiftEndIsNull(cashier)
+                    .orElseThrow(() ->new IllegalStateException("You must start a shift before placing an order.")
+                    );
+        }
 
         Branch branch = cashier.getBranch();
 

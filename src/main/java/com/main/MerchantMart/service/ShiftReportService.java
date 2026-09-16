@@ -5,7 +5,7 @@ import com.main.MerchantMart.payload.dto.ShiftReportDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ShiftReportService {
+public interface  ShiftReportService {
 
     ShiftReportDto startShift();
     ShiftReportDto endShift(LocalDateTime shiftEnd);

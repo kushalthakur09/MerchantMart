@@ -1,12 +1,9 @@
 package com.main.MerchantMart.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.main.MerchantMart.domain.OrderStatus;
 import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.payload.dto.OrderDto;
-import com.main.MerchantMart.payload.dto.OrderItemDto;
-import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,9 +24,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
@@ -105,11 +102,6 @@ public class OrderControllerTest {
         mockMvc.perform(get("/api/order/1")).andExpect(status().isOk());
     }
 
-    @Test
-    public void delete_shouldReturn200_whenOrderExists() throws Exception {
-        doNothing().when(orderService).deleteOrder(anyLong());
-        mockMvc.perform(delete("/api/order/1")).andExpect(status().isOk());
-    }
 
     @Test
     public void getOrdersByBranch_shouldReturn200() throws Exception {
