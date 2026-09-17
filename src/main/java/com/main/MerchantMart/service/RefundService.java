@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface RefundService {
     RefundDto createRefund(RefundDto refundDto);
+    RefundDto updateRefund(Long id, RefundDto refundDto);
     List<RefundDto> getAllRefunds();
     List<RefundDto> getRefundByCashierId(Long cashierId);
     List<RefundDto> getRefundByShiftReportId(Long shiftReportId);
@@ -15,7 +16,8 @@ public interface RefundService {
     RefundDto getRefundById(Long id);
 
     // can only be deleted by super admin
-    void deleteRefund(Long id);
-
+//    void deleteRefund(Long id);
+    RefundDto approveRefund(Long id);
+    RefundDto rejectRefund(Long id, String rejectionReason);
 
 }

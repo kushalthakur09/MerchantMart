@@ -1,9 +1,7 @@
 package com.main.MerchantMart.controller;
 
 import com.main.MerchantMart.payload.dto.RefundDto;
-import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.RefundService;
-import com.main.MerchantMart.utility.contants.ApiConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,6 +24,15 @@ public class RefundController {
         return ResponseEntity.status(HttpStatus.CREATED).body(refundService.createRefund(refundDto));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<RefundDto> updateRefund(
+            @PathVariable Long id,
+            @Valid @RequestBody RefundDto refundDto) {
+
+        return ResponseEntity.ok(
+                refundService.updateRefund(id, refundDto)
+        );
+    }
 
     @GetMapping
     public ResponseEntity<List<RefundDto>> getAllRefunds(){
@@ -60,9 +67,24 @@ public class RefundController {
         return  ResponseEntity.ok(refundService.getRefundById(id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id) {
-        refundService.deleteRefund(id);
-        return ResponseEntity.ok(new ApiResponse(ApiConstants.REFUND_DELETED_SUCCESSFULLY));
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<ApiResponse> delete(@PathVariable("id") Long id) {
+//        refundService.deleteRefund(id);
+//        return ResponseEntity.ok(new ApiResponse(ApiConstants.REFUND_DELETED_SUCCESSFULLY));
+//    }
+
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<RefundDto> approveRefund(@PathVariable Long id) {
+        return ResponseEntity.ok(refundService.approveRefund(id));
+    }
+
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<RefundDto> rejectRefund(
+            @PathVariable Long id,
+            @RequestParam String reason
+    ) {
+        return ResponseEntity.ok(
+                refundService.rejectRefund(id, reason)
+        );
     }
 }

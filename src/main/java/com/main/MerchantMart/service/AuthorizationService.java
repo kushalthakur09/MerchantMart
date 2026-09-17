@@ -67,9 +67,12 @@ public interface AuthorizationService {
     // Refund
     void authorizeRefundCreate(Branch branch);
     void authorizeRefundView(Branch branch);
-    void authorizeRefundDelete(Refund refund);
+//    void authorizeRefundDelete(Refund refund);
     void authorizeRefundViewAll();
     void authorizeRefundViewByCashier(User cashier);
+    void authorizeRefundApprove(Refund refund);
+    void authorizeRefundReject(Refund refund);
+    void authorizeRefundUpdate(Refund refund);
 
     // Shift
     void authorizeShiftStart();
@@ -102,4 +105,7 @@ public interface AuthorizationService {
     void authorizeStoreAdminCreate();
 
     void authorizeOrderViewAll();
+
+
+
 }

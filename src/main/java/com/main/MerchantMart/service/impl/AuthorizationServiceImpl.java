@@ -606,13 +606,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
 
     // ===========================
-    // REFUND
-    // ===========================
+// REFUND
+// ===========================
 
     @Override
     public void authorizeRefundCreate(Branch branch) {
-
-        authorizeStoreAccess(branch.getStore());
 
         User user = currentUser();
 
@@ -628,11 +626,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void authorizeRefundView(Branch branch) {
-        authorizeBranch(branch, true);
-    }
-
-    @Override
-    public void authorizeRefundDelete(Refund refund) {
 
         User user = currentUser();
 
@@ -640,8 +633,38 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return;
         }
 
+        if (isCashier(user)) {
+            if (belongsToBranch(user, branch)) {
+                return;
+            }
+
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+            );
+        }
+
+        if (isBranchManager(user)) {
+            if (belongsToBranch(user, branch)) {
+                return;
+            }
+
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+            );
+        }
+
+        if (isStoreAdmin(user) || isStoreManager(user)) {
+            if (belongsToStore(user, branch.getStore())) {
+                return;
+            }
+
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+            );
+        }
+
         throw new AccessDeniedException(
-                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND_DELETION
+                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
         );
     }
 
@@ -654,7 +677,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return;
         }
 
-        if ((isCashier(user) || isBranchManager(user))
+        if ((isBranchManager(user) || isCashier(user))
                 && user.getBranch() != null) {
             return;
         }
@@ -700,8 +723,60 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             );
         }
 
-        if ((isStoreAdmin(user) || isStoreManager(user))
-                && belongsToStore(user, cashier.getStore())) {
+        if (isStoreAdmin(user) || isStoreManager(user)) {
+
+            if (belongsToStore(user, cashier.getStore())) {
+                return;
+            }
+
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+            );
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+        );
+    }
+
+    @Override
+    public void authorizeRefundApprove(Refund refund) {
+
+        User user = currentUser();
+
+        if (isBranchManager(user)
+                && belongsToBranch(user, refund.getBranch())) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+        );
+    }
+
+    @Override
+    public void authorizeRefundReject(Refund refund) {
+
+        User user = currentUser();
+
+        if (isBranchManager(user)
+                && belongsToBranch(user, refund.getBranch())) {
+            return;
+        }
+
+        throw new AccessDeniedException(
+                ExceptionMessageConstants.ACCESS_DENIED_TO_REFUND
+        );
+    }
+
+    @Override
+    public void authorizeRefundUpdate(Refund refund) {
+
+        User user = currentUser();
+
+        if (isCashier(user)
+                && user.getId().equals(refund.getCashier().getId())
+                && belongsToBranch(user, refund.getBranch())) {
             return;
         }
 

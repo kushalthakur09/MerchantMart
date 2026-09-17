@@ -11,7 +11,12 @@ public interface RefundItemRepository extends JpaRepository<RefundItem, Long> {
             SELECT COALESCE(SUM(ri.quantity), 0)
             FROM RefundItem ri
             WHERE ri.orderItem.id = :orderItemId
+            AND ri.refund.status IN (
+                com.main.MerchantMart.domain.RefundStatus.APPROVED,
+                com.main.MerchantMart.domain.RefundStatus.COMPLETED
+            )
             """)
     Integer getTotalRefundedQuantity(
-            @Param("orderItemId") Long orderItemId);
+            @Param("orderItemId") Long orderItemId
+    );
 }

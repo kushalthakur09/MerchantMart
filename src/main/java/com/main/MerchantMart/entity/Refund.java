@@ -1,13 +1,10 @@
 package com.main.MerchantMart.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.main.MerchantMart.domain.PaymentType;
+import com.main.MerchantMart.domain.RefundMethod;
+import com.main.MerchantMart.domain.RefundStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -31,6 +28,7 @@ public class Refund {
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
@@ -57,12 +55,28 @@ public class Refund {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentType paymentType;
+    private RefundMethod refundMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private RefundStatus status = RefundStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    private LocalDateTime requestedAt;
+
+    private LocalDateTime approvedAt;
+
+    private LocalDateTime rejectedAt;
+
+    private String rejectionReason;
 
     @CreationTimestamp
-    private LocalDateTime  createdDate;
+    private LocalDateTime createdDate;
 
     @UpdateTimestamp
     private LocalDateTime updatedDate;
-
 }

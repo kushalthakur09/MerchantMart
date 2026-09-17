@@ -1,12 +1,11 @@
 package com.main.MerchantMart.payload.dto;
 
-import com.main.MerchantMart.domain.PaymentType;
+import com.main.MerchantMart.domain.RefundMethod;
+import com.main.MerchantMart.domain.RefundStatus;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,15 +33,29 @@ public class RefundDto {
     private Long shiftReportId;
 
     private UserDto cashier;
+
     private String cashierName;
 
     private BranchDto branch;
 
     @Builder.Default
+    @Valid
     private List<RefundItemDto> items = new ArrayList<>();
 
-    @NotNull(message = "Payment type is required")
-    private PaymentType paymentType;
+    @NotNull(message = "Refund method is required")
+    private RefundMethod refundMethod;
+
+    private RefundStatus status;
+
+    private UserDto approvedBy;
+
+    private LocalDateTime requestedAt;
+
+    private LocalDateTime approvedAt;
+
+    private LocalDateTime rejectedAt;
+
+    private String rejectionReason;
 
     private LocalDateTime createdDate;
 }
