@@ -173,10 +173,8 @@ public class RefundServiceImpl implements RefundService {
 
         authorizationService.authorizeRefundUpdate(refund);
 
-        if (refund.getStatus() != RefundStatus.PENDING) {
-            throw new IllegalStateException(
-                    "Only pending refunds can be updated."
-            );
+        if (refund.getStatus() != RefundStatus.REJECTED) {
+            throw new IllegalStateException("Only rejected refunds can be updated.");
         }
 
         if (refundDto.getItems() == null
