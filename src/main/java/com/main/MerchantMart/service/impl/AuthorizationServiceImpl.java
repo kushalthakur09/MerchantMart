@@ -966,9 +966,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         User user = currentUser();
 
-        if (isAdmin(user)
-                || isStoreAdmin(user)
-                || isStoreManager(user)) {
+        if ( isStoreAdmin(user)
+                || isStoreManager(user)
+                ||  isBranchManager(user)
+        ) {
             return;
         }
 
@@ -1005,7 +1006,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return;
         }
 
-        if ((isStoreAdmin(user) || isStoreManager(user))
+        if ((isStoreAdmin(user) || isStoreManager(user))  || isBranchManager(user)
                 && belongsToStore(user, customer.getStore())) {
             return;
         }
