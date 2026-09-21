@@ -3,6 +3,7 @@ package com.main.MerchantMart.service.impl;
 import com.main.MerchantMart.domain.PaymentType;
 import com.main.MerchantMart.entity.*;
 import com.main.MerchantMart.exception.conflict.ShiftAlreadyStartedException;
+import com.main.MerchantMart.exception.forbidden.AccessDeniedException;
 import com.main.MerchantMart.exception.notfound.BranchNotFoundException;
 import com.main.MerchantMart.exception.notfound.ShiftNotFoundException;
 import com.main.MerchantMart.exception.notfound.UserNotFoundException;
@@ -11,6 +12,7 @@ import com.main.MerchantMart.repository.*;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.ShiftReportService;
 import com.main.MerchantMart.service.UserService;
+import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.utility.function.Utility;
 import com.main.MerchantMart.utility.mapper.ShiftReportMapper;
 import lombok.RequiredArgsConstructor;
@@ -93,35 +95,68 @@ public class ShiftReportServiceImpl implements ShiftReportService {
 
     @Override
     public ShiftReportDto getShiftReportById(Long id) {
-        ShiftReport shiftReport = shiftReportRepository.findById(id)
-                .orElseThrow(ShiftNotFoundException::new);
-
+        ShiftReport shiftReport = shiftReportRepository.findById(id).orElseThrow(ShiftNotFoundException::new);
         authorizationService.authorizeShiftReportView(shiftReport);
+        if (shiftReport.getShiftEnd() == null) {
+            shiftReport = generateShiftReportForCurrentCashier(shiftReport,LocalDateTime.now());
+        }
         return ShiftReportMapper.toDto(shiftReport);
     }
 
     @Override
     public List<ShiftReportDto> getAllShiftReport() {
-        authorizationService.authorizeShiftViewAll();
 
-        return Utility.mapListToDto(
-                shiftReportRepository.findAll(),
-                ShiftReportMapper::toDto
-        );
+        User user = userService.getCurrentUser();
+
+        List<ShiftReport> reports;
+
+        if (authorizationService.isAdmin(user)) {
+            reports = shiftReportRepository.findAll();
+        } else if (authorizationService.isStoreAdmin(user)|| authorizationService.isStoreManager(user)) {
+
+            if (user.getStore() == null) {
+                throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
+            }
+
+            reports = shiftReportRepository.findByBranchStoreId(
+                    user.getStore().getId()
+            );
+
+        } else {
+            throw new AccessDeniedException(
+                    ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT
+            );
+        }
+
+        return reports.stream()
+                .map(report -> {
+
+                    if (report.getShiftEnd() == null) {
+                        report = generateShiftReportForCurrentCashier(
+                                report,
+                                LocalDateTime.now()
+                        );
+                    }
+
+                    return ShiftReportMapper.toDto(report);
+                })
+                .toList();
     }
 
     @Override
     public List<ShiftReportDto> getShiftReportsByBranchId(Long branchId) {
-
-        Branch branch = branchRepository.findById(branchId)
-                .orElseThrow(BranchNotFoundException::new);
-
+        Branch branch = branchRepository.findById(branchId).orElseThrow(BranchNotFoundException::new);
         authorizationService.authorizeShiftViewByBranch(branch);
-
-        return Utility.mapListToDto(
-                shiftReportRepository.findByBranchId(branchId),
-                ShiftReportMapper::toDto
-        );
+        List<ShiftReport> reports =shiftReportRepository.findByBranchId(branchId);
+        return reports.stream()
+                .map(report -> {
+                    if (report.getShiftEnd() == null) {
+                        return ShiftReportMapper.toDto(
+                                generateShiftReportForCurrentCashier(report,LocalDateTime.now())
+                        );
+                    }
+                    return ShiftReportMapper.toDto(report);
+                }).toList();
     }
 
     @Override

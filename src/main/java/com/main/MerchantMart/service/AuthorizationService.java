@@ -107,5 +107,7 @@ public interface AuthorizationService {
     void authorizeOrderViewAll();
 
 
-
+    boolean isStoreAdmin(User user);
+    boolean isAdmin(User user);
+    boolean isStoreManager(User user);
 }

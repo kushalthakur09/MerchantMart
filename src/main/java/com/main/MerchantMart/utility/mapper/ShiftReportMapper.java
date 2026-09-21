@@ -22,6 +22,10 @@ public class ShiftReportMapper {
                 .cashier(UserMapper.toDto(shiftReport.getCashier()))
                 .cashierId(shiftReport.getCashier() != null ? shiftReport.getCashier().getId() : null)
                 .branchId(shiftReport.getBranch() != null ? shiftReport.getBranch().getId() : null)
+                .branch(shiftReport.getBranch() != null
+                                ? BranchMapper.toDto(shiftReport.getBranch())
+                                : null
+                )
                 .recentOrders(shiftReport.getRecentOrders() == null
                         ? List.of()
                         : mapListToDto(shiftReport.getRecentOrders(), OrderMapper::toDto))

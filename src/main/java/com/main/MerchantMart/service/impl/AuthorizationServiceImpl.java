@@ -928,14 +928,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void authorizeShiftViewAll() {
-
-        if (isAdmin(currentUser())) {
+        User user = currentUser();
+        if (isAdmin(user)) {
             return;
         }
-
-        throw new AccessDeniedException(
-                ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT
-        );
+        if (isStoreAdmin(user) || isStoreManager(user)) {
+            return;
+        }
+        throw new AccessDeniedException(ExceptionMessageConstants.ACCESS_DENIED_TO_SHIFT);
     }
 
 
@@ -1273,27 +1273,27 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return userService.getCurrentUser();
     }
 
-    private boolean isAdmin(User user) {
+    public boolean isAdmin(User user) {
         return user.getRole() == Role.ROLE_ADMIN;
     }
 
-    private boolean isStoreAdmin(User user) {
+    public boolean isStoreAdmin(User user) {
         return user.getRole() == Role.ROLE_STORE_ADMIN;
     }
 
-    private boolean isStoreManager(User user) {
+    public boolean isStoreManager(User user) {
         return user.getRole() == Role.ROLE_STORE_MANAGER;
     }
 
-    private boolean isBranchManager(User user) {
+    public boolean isBranchManager(User user) {
         return user.getRole() == Role.ROLE_BRANCH_MANAGER;
     }
 
-    private boolean isCashier(User user) {
+    public boolean isCashier(User user) {
         return user.getRole() == Role.ROLE_BRANCH_CASHIER;
     }
 
-    private boolean isBranchCashier(User user) {
+    public  boolean isBranchCashier(User user) {
         return user.getRole() == Role.ROLE_BRANCH_CASHIER;
     }
 
