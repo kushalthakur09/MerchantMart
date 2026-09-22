@@ -53,4 +53,11 @@
         @Enumerated(EnumType.STRING)
         @Column(nullable = false)
         private OrderStatus status;
+
+
+        @OneToOne(mappedBy = "order",
+                cascade = CascadeType.ALL,
+                fetch = FetchType.LAZY
+        )
+        private Payment payment;
     }

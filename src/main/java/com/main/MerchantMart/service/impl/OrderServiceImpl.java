@@ -6,9 +6,7 @@ import com.main.MerchantMart.exception.notfound.*;
 import com.main.MerchantMart.payload.dto.OrderDto;
 import com.main.MerchantMart.payload.dto.OrderItemDto;
 import com.main.MerchantMart.repository.*;
-import com.main.MerchantMart.service.AuthorizationService;
-import com.main.MerchantMart.service.OrderService;
-import com.main.MerchantMart.service.UserService;
+import com.main.MerchantMart.service.*;
 import com.main.MerchantMart.utility.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,13 +25,13 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final UserService userService;
-    private final ProductRepository productRepository;
-    private final CustomerRepository customerRepository;
     private final InventoryRepository inventoryRepository;
     private final AuthorizationService authorizationService;
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final ShiftReportRepository shiftReportRepository;
+    private final PaymentService paymentService;
+    private final OrderPreparationService orderPreparationService;
 
     // =========================================================
     // CREATE ORDER
@@ -43,39 +41,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDto createOrder(OrderDto orderDto) {
 
-        if (orderDto == null) {
-            throw new IllegalArgumentException("Order data is required.");
-        }
-
-        if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
-            throw new IllegalArgumentException("Order must contain at least one item.");
-        }
-
-        Map<Long, Integer> mergedItems = orderDto.getItems()
-                .stream()
-                .peek(item -> {
-
-                    if (item.getProductId() == null) {
-                        throw new IllegalArgumentException("Product is required for every order item.");
-                    }
-
-                    if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                        throw new IllegalArgumentException("Quantity must be greater than zero.");
-                    }
-                })
-                .collect(Collectors.toMap(
-                        OrderItemDto::getProductId,
-                        OrderItemDto::getQuantity,
-                        Integer::sum
-                ));
-
         User cashier = userService.getCurrentUser();
 
         if (cashier.getRole() == Role.ROLE_BRANCH_CASHIER) {
-            shiftReportRepository
-                    .findByCashierAndShiftEndIsNull(cashier)
-                    .orElseThrow(() ->new IllegalStateException("You must start a shift before placing an order.")
-                    );
+            shiftReportRepository.findByCashierAndShiftEndIsNull(cashier)
+                    .orElseThrow(() -> new IllegalStateException("You must start a shift before placing an order."));
         }
 
         Branch branch = cashier.getBranch();
@@ -86,102 +56,41 @@ public class OrderServiceImpl implements OrderService {
 
         authorizationService.authorizeOrderCreate(branch);
 
-        Customer customer = customerRepository
-                .findById(orderDto.getCustomerId())
-                .orElseThrow(CustomerNotFoundException::new);
-
-        if (customer.getStore() == null
-                || !customer.getStore()
-                .getId()
-                .equals(branch.getStore().getId())) {
-
-            throw new IllegalArgumentException(
-                    "Please register the customer in this store before placing the order."
-            );
-        }
-
-        if (customer.getStatus() != CustomerStatus.ACTIVE) {
-            throw new IllegalArgumentException(
-                    "Customer is inactive. Activate the customer before creating the order."
-            );
-        }
+        OrderPreparationService.OrderPreparation preparation =orderPreparationService.prepareOrder(orderDto, cashier, branch);
 
         Order order = Order.builder()
                 .branch(branch)
                 .cashier(cashier)
-                .customer(customer)
+                .customer(preparation.customer())
                 .paymentType(orderDto.getPaymentType())
                 .status(OrderStatus.COMPLETED)
+                .totalAmount(preparation.totalAmount())
                 .build();
 
-        List<OrderItem> orderItems = mergedItems.entrySet()
-                .stream()
-                .map(entry -> {
+        List<OrderItem> orderItems = preparation.orderItems();
 
-                    Long productId = entry.getKey();
-                    Integer quantity = entry.getValue();
-
-                    Product product = productRepository
-                            .findById(productId)
-                            .orElseThrow(ProductNotFoundException::new);
-
-                    if (product.getStatus() != ProductStatus.ACTIVE) {
-                        throw new IllegalArgumentException(
-                                "Product is inactive and cannot be added to an order."
-                        );
-                    }
-
-                    if (!product.getStore()
-                            .getId()
-                            .equals(branch.getStore().getId())) {
-
-                        throw new IllegalArgumentException(
-                                "Product does not belong to the same store."
-                        );
-                    }
-
-                    Inventory inventory = inventoryRepository
-                            .findByProductIdAndBranchId(
-                                    product.getId(),
+        orderItems.forEach(item -> {
+            item.setOrder(order);
+            Inventory inventory = inventoryRepository.findByProductIdAndBranchId(
+                                    item.getProduct().getId(),
                                     branch.getId()
-                            )
-                            .orElseThrow(InventoryNotFoundException::new);
-
-                    if (inventory.getQuantity() < quantity) {
-                        throw new IllegalArgumentException(
-                                "Insufficient inventory for product: "
-                                        + product.getName()
-                        );
-                    }
-
-                    inventory.setQuantity(
-                            inventory.getQuantity() - quantity
-                    );
-
-                    BigDecimal price = product.getSellingPrice();
-
-                    return OrderItem.builder()
-                            .order(order)
-                            .product(product)
-                            .quantity(quantity)
-                            .price(price)
-                            .build();
-                })
-                .toList();
-
-        BigDecimal totalAmount = orderItems.stream()
-                .map(item -> item.getPrice()
-                        .multiply(
-                                BigDecimal.valueOf(item.getQuantity())
-                        ))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                            ).orElseThrow(InventoryNotFoundException::new);
+            inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
+        });
 
         order.setItems(orderItems);
-        order.setTotalAmount(totalAmount);
 
-        return OrderMapper.toDto(
-                orderRepository.save(order)
+        Order savedOrder = orderRepository.save(order);
+
+        Payment payment = paymentService.createPayment(
+                savedOrder,
+                preparation.totalAmount(),
+                PaymentStatus.SUCCESS
         );
+
+        savedOrder.setPayment(payment);
+
+        return OrderMapper.toDto(savedOrder);
     }
 
     // =========================================================
@@ -393,4 +302,8 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderMapper::toDto)
                 .toList();
     }
+
+
+    // helper methods
+
 }

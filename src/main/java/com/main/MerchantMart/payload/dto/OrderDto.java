@@ -37,4 +37,6 @@ public class OrderDto {
     private PaymentType paymentType;
 
     private OrderStatus status;
+
+    private PaymentDto payment;
 }
