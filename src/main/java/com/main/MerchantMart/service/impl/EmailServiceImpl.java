@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -58,5 +59,39 @@ public class EmailServiceImpl implements EmailService {
         context.setVariables(variables);
         String html = templateEngine.process(templateName, context);
         sendHtmlEmail(to, subject, html);
+    }
+
+    @Override
+    public void sendWelcomeEmail(String to, String name) {
+        try {
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("name", name);
+
+            sendTemplateEmail(to, "Welcome to MerchantMart", "email/welcome-email", variables);
+
+        } catch (MessagingException e) {
+            throw new IllegalStateException("Failed to send welcome email.", e);
+        }
+    }
+
+    @Override
+    public void sendOtpEmail(
+            String to,
+            String name,
+            String otp,
+            int expiryMinutes
+    ) throws MessagingException {
+
+        Map<String, Object> variables = new HashMap<>();
+
+        variables.put("name", name);
+        variables.put("otp", otp);
+        variables.put("expiryMinutes", expiryMinutes);
+
+        sendTemplateEmail(to,
+                "MerchantMart OTP Verification",
+                "email/otp",
+                variables
+        );
     }
 }

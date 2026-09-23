@@ -47,16 +47,16 @@ public class EmailController {
 
     @PostMapping("/send-template")
     public ResponseEntity<String> sendTemplateEmail(@RequestParam String to) throws MessagingException {
-
-        emailService.sendTemplateEmail(
-                to,
-                "Welcome to MerchantMart",
-                "email/welcome-email",
-                Map.of(
-                        "name", "Sachin"
-                )
-        );
-
+        emailService.sendTemplateEmail(to, "Welcome to MerchantMart", "email/welcome-email", Map.of("name", "Sachin"));
         return ResponseEntity.ok("Template email sent successfully.");
+    }
+
+    @PostMapping("/test-welcome-email")
+    public ResponseEntity<Void> testWelcomeEmail(
+            @RequestParam String email,
+            @RequestParam String name
+    ) {
+        emailService.sendWelcomeEmail(email, name);
+        return ResponseEntity.ok().build();
     }
 }

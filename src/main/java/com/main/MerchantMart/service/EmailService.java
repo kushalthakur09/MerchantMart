@@ -11,4 +11,12 @@ public interface EmailService {
                            String subject,
                            String templateName,
                            Map<String, Object> variables) throws MessagingException;
+
+    void sendWelcomeEmail(String to, String name);
+    void sendOtpEmail(
+            String to,
+            String name,
+            String otp,
+            int expiryMinutes
+    ) throws MessagingException;
 }

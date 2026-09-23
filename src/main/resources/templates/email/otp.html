@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>MerchantMart OTP</title>
+</head>
+
+<body>
+
+<h2>MerchantMart Verification Code</h2>
+
+<p>Hello <span th:text="${name}">User</span>,</p>
+
+<p>Your verification code is:</p>
+
+<h1 th:text="${otp}">123456</h1>
+
+<p>This OTP is valid for <span th:text="${expiryMinutes}">5</span> minutes.</p>
+
+<p>If you did not request this code, please ignore this email.</p>
+
+<p>
+    Regards,<br>
+    MerchantMart Team
+</p>
+
+</body>
+</html>

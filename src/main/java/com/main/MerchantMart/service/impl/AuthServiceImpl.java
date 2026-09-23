@@ -2,15 +2,16 @@ package com.main.MerchantMart.service.impl;
 
 import com.main.MerchantMart.config.JwtProvider;
 import com.main.MerchantMart.domain.Role;
-import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
-import com.main.MerchantMart.payload.response.AuthResponse;
-import com.main.MerchantMart.payload.request.LoginRequest;
-import com.main.MerchantMart.payload.request.SignupRequest;
 import com.main.MerchantMart.entity.User;
 import com.main.MerchantMart.exception.conflict.EmailAlreadyExistsException;
+import com.main.MerchantMart.payload.request.LoginRequest;
+import com.main.MerchantMart.payload.request.SignupRequest;
+import com.main.MerchantMart.payload.response.AuthResponse;
 import com.main.MerchantMart.repository.UserRepository;
 import com.main.MerchantMart.service.AuthService;
+import com.main.MerchantMart.service.NotificationService;
 import com.main.MerchantMart.utility.contants.AuthConstants;
+import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.utility.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -34,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final NotificationService notificationService;
 
     @Override
     public AuthResponse signup(SignupRequest request) {
@@ -67,7 +69,11 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(request.getRole());
         user.setLastLoginDate(LocalDateTime.now());
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        notificationService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullUserName());
+
+        return savedUser;
     }
 
     private AuthResponse buildAuthResponse(
