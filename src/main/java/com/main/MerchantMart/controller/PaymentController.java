@@ -3,6 +3,7 @@ package com.main.MerchantMart.controller;
 import com.main.MerchantMart.payload.dto.RazorpayCheckoutRequest;
 import com.main.MerchantMart.payload.dto.RazorpayCheckoutResponse;
 import com.main.MerchantMart.payload.dto.RazorpayCreateOrderRequest;
+import com.main.MerchantMart.payload.dto.RazorpayPaymentVerificationRequest;
 import com.main.MerchantMart.service.PaymentService;
 import com.razorpay.Order;
 import jakarta.validation.Valid;
@@ -33,5 +34,11 @@ public class PaymentController {
         return ResponseEntity.ok(
                 paymentService.createRazorpayCheckout(request)
         );
+    }
+
+    @PostMapping("/razorpay/verify")
+    public ResponseEntity<Void> verifyRazorpayPayment(@Valid @RequestBody RazorpayPaymentVerificationRequest request) {
+        paymentService.verifyRazorpayPayment(request);
+        return ResponseEntity.ok().build();
     }
 }

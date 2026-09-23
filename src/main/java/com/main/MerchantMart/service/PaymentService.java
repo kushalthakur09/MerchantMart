@@ -6,6 +6,7 @@ import com.main.MerchantMart.entity.Payment;
 import com.main.MerchantMart.payload.dto.RazorpayCheckoutRequest;
 import com.main.MerchantMart.payload.dto.RazorpayCheckoutResponse;
 import com.main.MerchantMart.payload.dto.RazorpayCreateOrderRequest;
+import com.main.MerchantMart.payload.dto.RazorpayPaymentVerificationRequest;
 
 import java.math.BigDecimal;
 
@@ -23,5 +24,9 @@ public interface PaymentService {
 
     RazorpayCheckoutResponse createRazorpayCheckout(
             RazorpayCheckoutRequest request
+    );
+
+    void verifyRazorpayPayment(
+            RazorpayPaymentVerificationRequest request
     );
 }
