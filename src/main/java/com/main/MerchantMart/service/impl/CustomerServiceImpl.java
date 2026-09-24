@@ -8,12 +8,15 @@ import com.main.MerchantMart.exception.notfound.CustomerNotFoundException;
 import com.main.MerchantMart.exception.notfound.StoreNotFoundException;
 import com.main.MerchantMart.payload.dto.CustomerDto;
 import com.main.MerchantMart.repository.CustomerRepository;
+import com.main.MerchantMart.repository.OtpVerificationRepository;
 import com.main.MerchantMart.service.AuthorizationService;
 import com.main.MerchantMart.service.CustomerService;
+import com.main.MerchantMart.service.OtpService;
 import com.main.MerchantMart.service.UserService;
 import com.main.MerchantMart.utility.mapper.CustomerMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,7 +27,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final AuthorizationService authorizationService;
     private final UserService userService;
-
+    private final OtpService otpService;
+    private final OtpVerificationRepository otpVerificationRepository;
     // =========================================================
     // GENERAL CUSTOMER MANAGEMENT
     // =========================================================
@@ -211,12 +215,8 @@ public class CustomerServiceImpl implements CustomerService {
     // =========================================================
 
     @Override
-    public CustomerDto createCustomerForOrder(
-            CustomerDto customerDto
-    ) {
-
+    public CustomerDto createCustomerForOrder(CustomerDto customerDto) {
         authorizationService.authorizeCustomerCreateForOrder();
-
         Store store = getCurrentUserStore();
 
         validateDuplicateCustomer(
@@ -226,14 +226,23 @@ public class CustomerServiceImpl implements CustomerService {
                 null
         );
 
-        Customer customer = CustomerMapper.toEntity(
-                customerDto,
-                store
-        );
+        Customer customer = CustomerMapper.toEntity(customerDto, store);
 
-        return CustomerMapper.toDto(
-                customerRepository.save(customer)
+        // No email → no email verification required
+        if (customer.getEmail() == null || customer.getEmail().isBlank()) {
+            customer.setEmailVerified(false);
+            return CustomerMapper.toDto(customerRepository.save(customer));
+        }
+
+        // Email provided → customer must verify it
+        customer.setEmailVerified(false);
+        Customer savedCustomer = customerRepository.save(customer);
+
+        otpService.generateAndSendOtp(
+                savedCustomer.getEmail(),
+                savedCustomer.getFullName()
         );
+        return CustomerMapper.toDto(savedCustomer);
     }
 
     @Override
@@ -386,5 +395,22 @@ public class CustomerServiceImpl implements CustomerService {
                 );
             }
         }
+    }
+
+    @Transactional
+    @Override
+    public void verifyCustomerEmail(String email, String otp) {
+        Store store = getCurrentUserStore();
+        Customer customer = customerRepository
+                .findByStoreIdAndEmailIgnoreCase(store.getId(), email)
+                .stream()
+                .findFirst()
+                .orElseThrow(CustomerNotFoundException::new);
+
+        otpService.verifyOtp(email, otp);
+
+        // Customer-specific action
+        customer.setEmailVerified(true);
+        customerRepository.save(customer);
     }
 }

@@ -10,6 +10,7 @@ import com.main.MerchantMart.payload.response.AuthResponse;
 import com.main.MerchantMart.repository.UserRepository;
 import com.main.MerchantMart.service.AuthService;
 import com.main.MerchantMart.service.NotificationService;
+import com.main.MerchantMart.service.OtpService;
 import com.main.MerchantMart.utility.contants.AuthConstants;
 import com.main.MerchantMart.utility.contants.ExceptionMessageConstants;
 import com.main.MerchantMart.utility.mapper.UserMapper;
@@ -36,11 +37,16 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final NotificationService notificationService;
+    private final OtpService otpService;
 
     @Override
     public AuthResponse signup(SignupRequest request) {
         User user = createUser(request);
-        return buildAuthResponse(user, AuthConstants.SIGNUP_SUCCESS);
+        otpService.generateAndSendOtp(
+                user.getEmail(),
+                user.getFullUserName()
+        );
+        return new AuthResponse(null, "Signup successful. Please verify your email.", UserMapper.toDto(user));
     }
 
     @Override
@@ -67,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhoneNo(request.getPhoneNo());
         user.setRole(request.getRole());
+        user.setEmailVerified(false);
         user.setLastLoginDate(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
@@ -99,13 +106,12 @@ public class AuthServiceImpl implements AuthService {
 
     private AuthResponse authenticateUser(LoginRequest request) {
 
-        Authentication authentication =
-                authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
                                 request.getEmail(),
                                 request.getPassword()));
 
-           User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
                                 ExceptionMessageConstants.USER_NOT_FOUND));
@@ -114,6 +120,9 @@ public class AuthServiceImpl implements AuthService {
             throw new AccessDeniedException("Please use the admin login endpoint.");
         }
 
+        if (!user.isEmailVerified()) {
+            throw new IllegalStateException("Please verify your email before logging in.");
+        }
         user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
 

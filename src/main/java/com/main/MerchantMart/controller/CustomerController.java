@@ -1,6 +1,7 @@
 package com.main.MerchantMart.controller;
 
 import com.main.MerchantMart.payload.dto.CustomerDto;
+import com.main.MerchantMart.payload.dto.VerifyOtpRequest;
 import com.main.MerchantMart.payload.response.ApiResponse;
 import com.main.MerchantMart.service.CustomerService;
 import jakarta.validation.Valid;
@@ -51,35 +52,21 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerDto> update(
-            @PathVariable Long id,
-            @RequestBody CustomerDto customerDto
-    ) {
-        return ResponseEntity.ok(
-                customerService.updateCustomer(id, customerDto)
-        );
+    public ResponseEntity<CustomerDto> update(@PathVariable Long id,
+            @RequestBody CustomerDto customerDto) {
+        return ResponseEntity.ok(customerService.updateCustomer(id, customerDto));
     }
 
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<ApiResponse> deactivate(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ApiResponse> deactivate(@PathVariable Long id) {
         customerService.deactivateCustomer(id);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Customer deactivated successfully.")
-        );
+        return ResponseEntity.ok(new ApiResponse("Customer deactivated successfully."));
     }
 
     @PutMapping("/{id}/activate")
-    public ResponseEntity<ApiResponse> activate(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ApiResponse> activate(@PathVariable Long id) {
         customerService.activateCustomer(id);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Customer activated successfully.")
-        );
+        return ResponseEntity.ok(new ApiResponse("Customer activated successfully."));
     }
 
     // =========================
@@ -87,40 +74,30 @@ public class CustomerController {
     // =========================
 
     @PostMapping("/order")
-    public ResponseEntity<CustomerDto> createForOrder(
-            @Valid @RequestBody CustomerDto customerDto
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+    public ResponseEntity<CustomerDto> createForOrder(@Valid @RequestBody CustomerDto customerDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(customerService.createCustomerForOrder(customerDto));
     }
 
     @GetMapping("/order/search")
-    public ResponseEntity<List<CustomerDto>> searchForOrder(
-            @RequestParam("keyword") String keyword
-    ) {
-        return ResponseEntity.ok(
-                customerService.searchForOrder(keyword)
-        );
+    public ResponseEntity<List<CustomerDto>> searchForOrder(@RequestParam("keyword") String keyword) {
+        return ResponseEntity.ok(customerService.searchForOrder(keyword));
     }
 
     @GetMapping("/order/{id}")
-    public ResponseEntity<CustomerDto> getForOrder(
-            @PathVariable Long id
-    ) {
-        return ResponseEntity.ok(
-                customerService.getCustomerForOrder(id)
-        );
+    public ResponseEntity<CustomerDto> getForOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getCustomerForOrder(id));
     }
 
     @PutMapping("/order/{id}/activate")
-    public ResponseEntity<ApiResponse> activateForOrder(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ApiResponse> activateForOrder(@PathVariable Long id) {
         customerService.activateCustomerForOrder(id);
+        return ResponseEntity.ok(new ApiResponse("Customer activated successfully."));
+    }
 
-        return ResponseEntity.ok(
-                new ApiResponse("Customer activated successfully.")
-        );
+    @PostMapping("/order/verify-email")
+    public ResponseEntity<Void> verifyCustomerEmail(@Valid @RequestBody VerifyOtpRequest request) {
+        customerService.verifyCustomerEmail(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok().build();
     }
 }

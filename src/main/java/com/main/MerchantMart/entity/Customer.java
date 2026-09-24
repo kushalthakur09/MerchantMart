@@ -24,6 +24,10 @@ public class Customer {
 
     private String email;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
     private String phoneNo;
 
     @Enumerated(EnumType.STRING)

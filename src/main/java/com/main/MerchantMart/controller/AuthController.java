@@ -1,5 +1,7 @@
 package com.main.MerchantMart.controller;
 
+import com.main.MerchantMart.payload.dto.SendOtpRequest;
+import com.main.MerchantMart.payload.dto.VerifyOtpRequest;
 import com.main.MerchantMart.payload.response.AuthResponse;
 import com.main.MerchantMart.payload.request.LoginRequest;
 import com.main.MerchantMart.payload.request.SignupRequest;
@@ -35,20 +37,37 @@ public class AuthController {
     }
 
     @PostMapping("/otp/send")
-    public ResponseEntity<Void> sendOtp(
-            @RequestParam String email,
-            @RequestParam String name
+    public ResponseEntity<Void> sendOtp(@Valid @RequestBody SendOtpRequest request
     ) {
-        otpService.generateAndSendOtp(email, name);
+        otpService.generateAndSendOtp(
+                request.getEmail(),
+                request.getName()
+        );
+
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/otp/verify")
     public ResponseEntity<Void> verifyOtp(
-            @RequestParam String email,
-            @RequestParam String otp
+            @Valid @RequestBody VerifyOtpRequest request
     ) {
-        otpService.verifyOtp(email, otp);
+        otpService.verifyOtp(
+                request.getEmail(),
+                request.getOtp()
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/otp/resend")
+    public ResponseEntity<Void> resendOtp(
+            @Valid @RequestBody SendOtpRequest request
+    ) {
+        otpService.resendOtp(
+                request.getEmail(),
+                request.getName()
+        );
+
         return ResponseEntity.ok().build();
     }
 }

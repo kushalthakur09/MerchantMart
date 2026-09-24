@@ -28,11 +28,7 @@ public class OrderPreparationService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
 
-    public OrderPreparation prepareOrder(
-            OrderDto orderDto,
-            User cashier,
-            Branch branch
-    ) {
+    public OrderPreparation prepareOrder(OrderDto orderDto, User cashier, Branch branch) {
 
             if (orderDto == null) {
                 throw new IllegalArgumentException("Order data is required.");
@@ -69,6 +65,9 @@ public class OrderPreparationService {
                 throw new IllegalArgumentException("Customer is inactive. Activate the customer before creating the order.");
             }
 
+            if (customer.getEmail() != null && !customer.getEmail().isBlank() && !customer.isEmailVerified()) {
+                throw new IllegalStateException("Customer email must be verified before placing the order.");
+            }
             List<OrderItem> orderItems = mergedItems.entrySet()
                     .stream()
                     .map(entry -> {

@@ -60,4 +60,8 @@ public class User {
     @Column(length = 20)
     private String provider;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
 }

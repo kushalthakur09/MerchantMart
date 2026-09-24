@@ -29,4 +29,6 @@ public interface CustomerService {
     List<CustomerDto> searchForOrder(String keyword);
 
     void activateCustomerForOrder(Long id);
+
+    void verifyCustomerEmail(String email, String otp);
 }
