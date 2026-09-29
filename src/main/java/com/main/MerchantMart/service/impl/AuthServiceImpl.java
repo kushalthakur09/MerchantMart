@@ -24,6 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -160,5 +161,26 @@ public class AuthServiceImpl implements AuthService {
                 token,
                 AuthConstants.LOGIN_SUCCESS,
                 UserMapper.toDto(user));
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(ExceptionMessageConstants.USER_NOT_FOUND));
+
+        otpService.generateAndSendOtp(
+                user.getEmail(),
+                user.getFullUserName()
+        );
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String email, String otp, String newPassword) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(ExceptionMessageConstants.USER_NOT_FOUND));
+        otpService.verifyOtp(email, otp);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

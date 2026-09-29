@@ -2,6 +2,8 @@ package com.main.MerchantMart.controller;
 
 import com.main.MerchantMart.payload.dto.SendOtpRequest;
 import com.main.MerchantMart.payload.dto.VerifyOtpRequest;
+import com.main.MerchantMart.payload.request.ForgotPasswordRequest;
+import com.main.MerchantMart.payload.request.ResetPasswordRequest;
 import com.main.MerchantMart.payload.response.AuthResponse;
 import com.main.MerchantMart.payload.request.LoginRequest;
 import com.main.MerchantMart.payload.request.SignupRequest;
@@ -68,6 +70,22 @@ public class AuthController {
                 request.getName()
         );
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(
+                request.getEmail(),
+                request.getOtp(),
+                request.getNewPassword()
+        );
         return ResponseEntity.ok().build();
     }
 }
